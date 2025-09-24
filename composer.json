@@ -1,0 +1,55 @@
+{
+    "name": "emizor/sdk",
+    "description": "SDK para integración con BEI (Bolivia) - manejo de cuentas, facturación electrónica y flujos de registro",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marco Cuellar",
+            "email": "mcuellar@emizor.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "illuminate/support": "^11.0",
+        "illuminate/database": "^11.0",
+        "illuminate/validation": "^11.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.22",
+        "orchestra/testbench": "^9.0",
+        "pestphp/pest": "^2.36",
+        "pestphp/pest-plugin-laravel": "^2.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Emizor\\SDK\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Emizor\\SDK\\EmizorServiceProvider"
+            ],
+            "aliases": {
+                "EmizorSdk": "Emizor\\SDK\\Facade\\EmizorSdk"
+            }
+        }
+    },
+    "scripts": {
+        "test": "pest"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
