@@ -18,19 +18,10 @@ class TokenService implements TokenContract
         $this->http = $http;
     }
 
-    /**
-     * Establece el host dinámicamente antes de generar el token
-     */
-    public function setHost(string $host): void
-    {
-        $this->host = $host;
-        $this->http->setBaseUri($host);
-    }
-
-    public function generate(string $clientId, string $clientSecret) : array
+    public function generate(string $host, string $clientId, string $clientSecret) : array
     {
 
-        $response = $this->http->post('/oauth/token', [
+        $response = $this->http->post($host, '/oauth/token', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
             'grant_type' => 'client_credentials',

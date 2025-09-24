@@ -4,11 +4,46 @@ namespace Emizor\SDK\Contracts;
 
 interface HttpClientInterface
 {
-    public function get(string $uri, array $options = []): array;
+    /**
+     * Set the token to be used in requests.
+     */
+    public function withToken(string $token): static;
 
-    public function post(string $uri, array $data = [], array $options = []): array;
+    /**
+     * Make a GET request to a dynamic host.
+     *
+     * @param string $host
+     * @param string $uri
+     * @param array $options
+     */
+    public function get(string $host, string $uri, array $options = []): array;
 
-    public function put(string $uri, array $data = [], array $options = []): array;
+    /**
+     * Make a POST request to a dynamic host.
+     *
+     * @param string $host
+     * @param string $uri
+     * @param array $data
+     * @param array $options
+     */
+    public function post(string $host, string $uri, array $data = [], array $options = []): array;
 
-    public function delete(string $uri, array $options = []): array;
+    /**
+     * Make a PUT request to a dynamic host.
+     *
+     * @param string $host
+     * @param string $uri
+     * @param array $data
+     * @param array $options
+     */
+    public function put(string $host, string $uri, array $data = [], array $options = []): array;
+
+    /**
+     * Make a DELETE request to a dynamic host.
+     *
+     * @param string $host
+     * @param string $uri
+     * @param array $options
+     */
+    public function delete(string $host, string $uri, array $options = []): array;
 }

@@ -18,9 +18,8 @@ beforeEach(function () {
             'token' => 'fake-token-del-mock',
             'expires_at' => now()->addHour(),
         ]);
-        $mock->shouldReceive('setHost')->once();
     });
-    
+
     // Resuelve la interfaz EmizorApiInterface a través del contenedor
     // para que todas las dependencias se inyecten correctamente.
     $this->api = app(EmizorApi::class);
@@ -50,7 +49,7 @@ it('throws exception if client_id already exists', function () {
     BeiAccount::factory()->create([
         'bei_client_id' => 'DUPLICATE_CLIENT',
     ]);
-    
+
     $dto = new RegisterDTO(
         host: 'https://api.test.com',
         clientId: 'DUPLICATE_CLIENT',

@@ -28,8 +28,8 @@ class BeiAccountObserver
 
     protected function generateToken(BeiAccount $account): void
     {
-        $this->tokenService->setHost($account->bei_host);
         $tokenData = $this->tokenService->generate(
+            $account->bei_host,
             $account->bei_client_id,
             $account->bei_client_secret
         );

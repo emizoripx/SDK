@@ -10,7 +10,7 @@ use Emizor\SDK\Services\TokenService;
 use Emizor\SDK\Contracts\EmizorApiContract;
 use Emizor\SDK\EmizorApi;
 use Emizor\SDK\Contracts\HttpClientInterface;
-use Emizor\SDK\Http\GuzzleHttpClient;
+use Emizor\SDK\Http\LaravelHttpClient;
 use Emizor\SDK\Facade\EmizorSdk;
 
 class EmizorServiceProvider extends ServiceProvider
@@ -42,7 +42,7 @@ class EmizorServiceProvider extends ServiceProvider
 
         $this->app->bind(HttpClientInterface::class, function ($app) {
             // Puedes usar una URL de prueba aquí
-            return new GuzzleHttpClient();
+            return new LaravelHttpClient();
         });
         // Registra el alias del facade
         $this->app->singleton('emizorsdk', function ($app) {

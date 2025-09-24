@@ -4,23 +4,13 @@ namespace Emizor\SDK\Contracts;
 
 interface TokenContract
 {
-
     /**
-     * Generate token using credentials, CLIENT_ID, CLIENT_SECRET
+     * Generate token using credentials, specifying the host dynamically.
      *
+     * @param string $host The API host
      * @param string $clientId
      * @param string $clientSecret
      * @return array
      */
-
-    public function generate( string $clientId, string $clientSecret): array;
-
-    /**
-     * Construct the service generate client base uri.
-     *
-     * @param HttpClientInterface $http
-     */
-
-    public function __construct(HttpClientInterface $http);
-
+    public function generate(string $host, string $clientId, string $clientSecret): array;
 }
