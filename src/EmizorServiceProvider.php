@@ -2,6 +2,11 @@
 
 namespace Emizor\SDK;
 
+use Emizor\SDK\Contracts\ParametricContract;
+use Emizor\SDK\Repositories\AccountRepository;
+use Emizor\SDK\Services\ParametricService;
+use Emizor\SDK\Validators\AccountValidator;
+use Emizor\SDK\Validators\ParametricSyncValidator;
 use Illuminate\Support\ServiceProvider;
 use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Observers\BeiAccountObserver;
@@ -21,7 +26,7 @@ class EmizorServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Publica migrations para que el usuario pueda ejecutarlas en su proyecto
-        $this->loadMigrationsFrom(__DIR__ . "/database/migrations");
+        $this->loadMigrationsFrom(__DIR__ . "/Database/migrations");
 
 
 
@@ -37,16 +42,32 @@ class EmizorServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(TokenContract::class, TokenService::class);
-        $this->app->bind(EmizorApiContract::class, EmizorApi::class);
+        $this->app->bind(TokenContract::class, function ($app) {
+            $http = $app->make(HttpClientInterface::class);
+            return new TokenService($http);
+        });
+
+        $this->app->bind(EmizorApiContract::class, function ($app, $params) {
+            return new EmizorApi(
+                $app->make(HttpClientInterface::class),
+                $app->make(AccountRepository::class),
+                $app->make(TokenService::class),
+                $app->make(AccountValidator::class),
+                $app->make(ParametricSyncValidator::class),
+                $params['accountId'] ?? null // 🔹 parámetro opcional
+            );
+        });
+        $this->app->bind(ParametricContract::class, ParametricService::class);
 
         $this->app->bind(HttpClientInterface::class, function ($app) {
             // Puedes usar una URL de prueba aquí
             return new LaravelHttpClient();
         });
         // Registra el alias del facade
-        $this->app->singleton('emizorsdk', function ($app) {
-            return $app->make(EmizorApiContract::class);
+        $this->app->bind('emizorsdk', function ($app, $params) {
+            return $app->make(EmizorApiContract::class, [
+                'accountId' => $params['accountId'] ?? null,
+            ]);
         });
 
 
