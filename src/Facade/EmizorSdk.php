@@ -8,8 +8,17 @@ class EmizorSdk extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        // Nombre del binding que registrarás en el ServiceProvider
         return 'emizorsdk';
-
     }
+    public static function register($dto)
+    {
+        return app('emizorsdk')->register($dto);
+    }
+
+    public static function withAccount(string $accountId)
+    {
+        return app('emizorsdk', ['accountId' => $accountId]);
+    }
+
+
 }

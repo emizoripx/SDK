@@ -12,15 +12,15 @@ class AccountRepository
         return BeiAccount::create($data);
     }
 
-    public function findByClientId(string $clientId): ?BeiAccount
+    public function getAccount(string $account_id): BeiAccount
     {
-        return BeiAccount::where('bei_client_id', $clientId)->first();
+        return BeiAccount::find($account_id);
     }
 
     // Métodos relacionados con el token
-    public function saveToken(string $clientId, string $token, \DateTime $expiresAt): void
+    public function saveToken(string $accountId, string $token, \DateTime $expiresAt): void
     {
-        $account = $this->findByClientId($clientId) ?? new BeiAccount(['bei_client_id' => $clientId]);
+        $account = $this->getAccount($accountId);
         $account->bei_token = $token;
         $account->bei_deadline_token = $expiresAt->format('Y-m-d H:i:s');
         $account->save();
@@ -28,15 +28,11 @@ class AccountRepository
 
     public function getToken(string $clientId): ?array
     {
-        $account = $this->findByClientId($clientId);
-
-        if (!$account || !$account->bei_token) {
-            return null;
-        }
+        $account = $this->getAccount($clientId);
 
         return [
-            'token' => $account->bei_token,
-            'expires_at' => Carbon::parse($account->bei_deadline_token),
+            'token' => $account->bei_token??"",
+            'expires_at' => $account->bei_deadline_token ?: Carbon::parse($account->bei_deadline_token),
         ];
     }
 }

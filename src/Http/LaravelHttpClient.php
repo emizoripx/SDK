@@ -6,49 +6,56 @@ use Illuminate\Support\Facades\Http;
 
 class LaravelHttpClient implements HttpClientInterface
 {
+
     protected ?string $token = null;
 
-    public function withToken(string $token): static
+    public function __construct() {
+        $this->client = Http::acceptJson();
+    }
+
+    public function withBaseUri(string $host): static
     {
-        $this->token = $token;
+        $this->client->baseUrl($host);
         return $this;
     }
 
-    public function get(string $host, string $uri, array $options = []): array
+    public function withToken(string $token): static
     {
-        return $this->request('GET', $host, $uri, $options);
+        $this->client->withToken( $token );
+        return $this;
     }
 
-    public function post(string $host, string $uri, array $data = [], array $options = []): array
+    public function get(string $uri, array $options = []): array
     {
-        return $this->request('POST', $host, $uri, $data);
+        return $this->request('GET', $uri, $options);
     }
 
-    protected function request(string $method, string $host, string $uri, array $data = []): array
+    public function post(string $uri, array $data = [], array $options = []): array
     {
-        $client = Http::acceptJson()->baseUrl($host);
+        return $this->request('POST', $uri, $data);
+    }
 
-        if ($this->token) {
-            $client = $client->withToken($this->token);
-        }
+    public function put(string $uri, array $data = [], array $options = []): array
+    {
+        return $this->request('PUT', $uri, $data);
+    }
+
+    public function delete(string $uri, array $options = []): array
+    {
+        return $this->request('DELETE', $uri);
+    }
+
+    protected function request(string $method, string $uri, array $data = []): array
+    {
 
         $response = match ($method) {
-            'GET' => $client->get($uri, $data),
-            'POST' => $client->post($uri, $data),
-            'PUT' => $client->put($uri, $data),
-            'DELETE' => $client->delete($uri, $data),
+            'GET' => $this->client->get($uri, $data),
+            'POST' => $this->client->post($uri, $data),
+            'PUT' => $this->client->put($uri, $data),
+            'DELETE' => $this->client->delete($uri, $data),
         };
 
         return $response->json() ?? [];
     }
 
-    public function put(string $host, string $uri, array $data = [], array $options = []): array
-    {
-        return $this->request('PUT', $host, $uri, $data);
-    }
-
-    public function delete(string $host, string $uri, array $options = []): array
-    {
-        return $this->request('DELETE', $host, $uri);
-    }
 }

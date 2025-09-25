@@ -12,11 +12,12 @@ it('calls token service and saves token when account is created', function () {
     $this->mock(TokenContract::class, function (MockInterface $mock) {
         $mock->shouldReceive('generate')
             ->once()
-            ->with('https://api.emizor.com', 'CLIENT_ID', 'SECRET')
+            ->with( 'CLIENT_ID', 'SECRET')
             ->andReturn([
                 'token' => 'fake-token-del-mock',
                 'expires_at' => now()->addHour(),
             ]);
+        $mock->shouldReceive("setHost")->once();
     });
 
 // 2. Actúa (crea una cuenta, lo que dispara el observador)

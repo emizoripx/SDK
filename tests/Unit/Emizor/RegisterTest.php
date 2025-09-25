@@ -3,6 +3,7 @@
 use Emizor\SDK\Contracts\TokenContract;
 use Emizor\SDK\DTO\RegisterDTO;
 use Emizor\SDK\EmizorApi;
+use Emizor\SDK\Exceptions\EmizorApiRegisterException;
 use Emizor\SDK\Exceptions\RegisterValidationException;
 use Emizor\SDK\Models\BeiAccount;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,6 +19,7 @@ beforeEach(function () {
             'token' => 'fake-token-del-mock',
             'expires_at' => now()->addHour(),
         ]);
+        $mock->shouldReceive("setHost")->once();
     });
 
     // Resuelve la interfaz EmizorApiInterface a través del contenedor
@@ -58,5 +60,5 @@ it('throws exception if client_id already exists', function () {
 
     // Actuar y afirmar que se lanza la excepción correcta
     $this->api->register($dto);
-})->throws(RegisterValidationException::class);
+})->throws(EmizorApiRegisterException::class);
 

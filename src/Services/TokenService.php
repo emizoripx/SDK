@@ -12,16 +12,24 @@ class TokenService implements TokenContract
 {
 
     protected HttpClientInterface $http;
+    protected string $host;
 
     public function __construct(HttpClientInterface $http)
     {
         $this->http = $http;
     }
 
-    public function generate(string $host, string $clientId, string $clientSecret) : array
+    public function setHost(string $host): static
+    {
+        $this->host = $host;
+        $this->http = $this->http->withBaseUri($host);
+        return $this;
+    }
+
+    public function generate( string $clientId, string $clientSecret ) : array
     {
 
-        $response = $this->http->post($host, '/oauth/token', [
+        $response = $this->http->post('/oauth/token', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
             'grant_type' => 'client_credentials',
