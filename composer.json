@@ -1,5 +1,6 @@
 {
     "name": "emizor/sdk",
+    "version": "1.0.0",
     "description": "SDK para integración con BEI (Bolivia) - manejo de cuentas, facturación electrónica y flujos de registro",
     "type": "library",
     "license": "MIT",

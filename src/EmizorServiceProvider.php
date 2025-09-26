@@ -4,6 +4,7 @@ namespace Emizor\SDK;
 
 use Emizor\SDK\Contracts\ParametricContract;
 use Emizor\SDK\Repositories\AccountRepository;
+use Emizor\SDK\Repositories\ParametricRepository;
 use Emizor\SDK\Services\ParametricService;
 use Emizor\SDK\Validators\AccountValidator;
 use Emizor\SDK\Validators\ParametricSyncValidator;
@@ -54,10 +55,14 @@ class EmizorServiceProvider extends ServiceProvider
                 $app->make(TokenService::class),
                 $app->make(AccountValidator::class),
                 $app->make(ParametricSyncValidator::class),
+                $app->make(ParametricContract::class),
                 $params['accountId'] ?? null // 🔹 parámetro opcional
             );
         });
-        $this->app->bind(ParametricContract::class, ParametricService::class);
+        $this->app->bind(ParametricContract::class, function($app) {
+            $http = $app->make(HttpClientInterface::class);
+            return new ParametricService($http,  $app->make(ParametricRepository::class));
+        });
 
         $this->app->bind(HttpClientInterface::class, function ($app) {
             // Puedes usar una URL de prueba aquí

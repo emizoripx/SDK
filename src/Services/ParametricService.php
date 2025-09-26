@@ -18,6 +18,18 @@ class ParametricService implements ParametricContract
         $this->repository = $repository;
     }
 
+    public function setHost(string $host): static
+    {
+        $this->http = $this->http->withBaseUri($host);
+        return $this;
+    }
+
+    public function setToken(string $token): static
+    {
+        $this->http = $this->http->withToken($token);
+        return $this;
+    }
+
     public function sync( $type, string $accountId): void
     {
         $endpoint = "/api/v1/parametricas/" . $type;
@@ -29,5 +41,10 @@ class ParametricService implements ParametricContract
     public function get( $type, string $accountId): array
     {
         return $this->repository->list($type, $accountId);
+    }
+
+    public function listParametricTypes()
+    {
+        return ParametricType::cases();
     }
 }

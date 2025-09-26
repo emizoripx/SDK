@@ -2,6 +2,7 @@
 
 namespace Emizor\SDK;
 
+use Emizor\SDK\Builders\DefaultsBuilder;
 use Emizor\SDK\Contracts\EmizorApiContract;
 use Emizor\SDK\Contracts\ParametricContract;
 use Emizor\SDK\DTO\RegisterDTO;
@@ -15,6 +16,7 @@ use Emizor\SDK\Contracts\HttpClientInterface;
 use Emizor\SDK\Validators\AccountValidator;
 use Emizor\SDK\Exceptions\EmizorApiRegisterException;
 use Emizor\SDK\Validators\ParametricSyncValidator;
+use \Closure;
 
 class EmizorApi implements EmizorApiContract
 {
@@ -33,6 +35,7 @@ class EmizorApi implements EmizorApiContract
         TokenService $tokenService,
         AccountValidator $accountValidator,
         ParametricSyncValidator $parametricSyncValidator,
+        ParametricContract $parametricService,
         ?string $accountId = null
     ) {
         $this->http = $http;
@@ -41,6 +44,7 @@ class EmizorApi implements EmizorApiContract
         $this->accountValidator = $accountValidator;
         $this->accountId = $accountId;
         $this->parametricValidator = $parametricSyncValidator;
+        $this->parametricService = $parametricService;
 
         if (!is_null($this->accountId)) {
             $this->bootAuthenticatedClient();
@@ -50,12 +54,6 @@ class EmizorApi implements EmizorApiContract
     private function bootAuthenticatedClient(): void
     {
         $this->account = $this->accountValidator->validate($this->accountId);
-
-        $this->http = $this->http
-            ->withBaseUri($this->account->bei_host)
-            ->withToken($this->account->bei_token);
-
-        $this->parametricService = new ParametricService($this->http, new ParametricRepository());
     }
 
     public function register(RegisterDTO $dto): string
@@ -81,26 +79,49 @@ class EmizorApi implements EmizorApiContract
         }
     }
 
-    public function sync(array $parametrics): void
+    public function listParametricsTypes(): array
+    {
+        return $this->parametricService->listParametricTypes();
+    }
+
+    public function syncParametrics(array $parametrics): void
     {
         if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId para usar sync.");
+            throw new \LogicException("Debes instanciar con accountId para usar syncParametrics.");
         }
-
         $this->parametricValidator->validate($parametrics);
 
         foreach ($parametrics as $type) {
-            $this->parametricService->sync($type, $this->accountId);
+            $this->parametricService->setHost($this->account->bei_host)->setToken($this->account->bei_token)->sync($type, $this->accountId);
         }
     }
 
-    public function getParametric( $type): array
+    public function getParametric($type): array
     {
         if (is_null($this->accountId)) {
             throw new \LogicException("Debes instanciar con accountId para usar getParametrics.");
         }
         $this->parametricValidator->validate([$type]);
 
-        return $this->parametricService->get($type, $this->accountId);
+        return $this->parametricService->setHost($this->account->bei_host)->setToken($this->account->bei_token)->get($type, $this->accountId);
     }
+
+    public function setDefaults(Closure $callback): self
+    {
+        $builder = new DefaultsBuilder();
+
+        $callback($builder);
+
+        $defaultsDTO = $builder->build();
+
+        $this->repository->saveDefaults($this->accountId, $defaultsDTO->toArray());
+
+        return $this;
+    }
+
+    public function getDefaults(): array
+    {
+        return $this->repository->getDefaults($this->accountId);
+    }
+
 }

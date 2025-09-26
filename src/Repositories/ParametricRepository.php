@@ -12,7 +12,7 @@ class ParametricRepository
     public function store( $type, array $data, string $accountId): void
     {
 
-        if ( in_array(ParametricType::from( $type ),[ParametricType::ACTIVIDADES, ParametricType::PRODUCTOS_SIN, ParametricType::LEYENDAS])) {
+        if ( in_array(ParametricType::from($type) ,[ParametricType::ACTIVIDADES, ParametricType::PRODUCTOS_SIN, ParametricType::LEYENDAS])) {
             foreach ($data as $item) {
                 BeiSpecificParametric::updateOrCreate(
                     [
@@ -41,7 +41,7 @@ class ParametricRepository
 
     public function list( $type, $accountId=null):array
     {
-        if ( in_array(ParametricType::from( $type ),[ParametricType::ACTIVIDADES, ParametricType::PRODUCTOS_SIN, ParametricType::LEYENDAS])) {
+        if ( in_array( ParametricType::from($type), [ParametricType::ACTIVIDADES, ParametricType::PRODUCTOS_SIN, ParametricType::LEYENDAS])) {
             $parametrics = BeiSpecificParametric::where('bei_account_id', $accountId)->where("bei_type", $type)->get();
             return $parametrics->map(fn ($m) => ParametricDTO::fromSpecificModel($m)->toArray())->toArray();
         } else {

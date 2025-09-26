@@ -35,4 +35,17 @@ class AccountRepository
             'expires_at' => $account->bei_deadline_token ?: Carbon::parse($account->bei_deadline_token),
         ];
     }
+
+    public function saveDefaults(string $accountId, $defaults):void
+    {
+        $account = $this->getAccount($accountId);
+        $account->bei_defaults = $defaults;
+        $account->save();
+    }
+
+    public function getDefaults(string $accountId): array
+    {
+        $account = $this->getAccount($accountId);
+        return $account->bei_defaults;
+    }
 }
