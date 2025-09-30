@@ -10,8 +10,18 @@ class ParametricSyncValidator
 {
     public function validate(array $parametrics_data): void
     {
+
         foreach($parametrics_data as $data) {
-            if (!in_array(ParametricType::from($data), ParametricType::cases())) {
+            try {
+
+                $parmString = ParametricType::from($data);
+
+            } catch(\Throwable $th) {
+                throw new ParametricSyncValidationException("Inexistent parametric [".$data."], refer to parametric list.");
+            }
+
+
+            if (!in_array($parmString, ParametricType::cases())) {
                 throw new ParametricSyncValidationException("Paramétric type should be valid [" . $data. "]");
             }
         }

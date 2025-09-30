@@ -2,11 +2,15 @@
 
 namespace Emizor\SDK;
 
+use Emizor\SDK\Contracts\HomologateProductContract;
 use Emizor\SDK\Contracts\ParametricContract;
 use Emizor\SDK\Repositories\AccountRepository;
+use Emizor\SDK\Repositories\HomologateProductRepository;
 use Emizor\SDK\Repositories\ParametricRepository;
+use Emizor\SDK\Services\HomologateProductService;
 use Emizor\SDK\Services\ParametricService;
 use Emizor\SDK\Validators\AccountValidator;
+use Emizor\SDK\Validators\HomologateProductsValidator;
 use Emizor\SDK\Validators\ParametricSyncValidator;
 use Illuminate\Support\ServiceProvider;
 use Emizor\SDK\Models\BeiAccount;
@@ -56,12 +60,19 @@ class EmizorServiceProvider extends ServiceProvider
                 $app->make(AccountValidator::class),
                 $app->make(ParametricSyncValidator::class),
                 $app->make(ParametricContract::class),
+                $app->make(HomologateProductContract::class),
                 $params['accountId'] ?? null // 🔹 parámetro opcional
             );
         });
         $this->app->bind(ParametricContract::class, function($app) {
             $http = $app->make(HttpClientInterface::class);
             return new ParametricService($http,  $app->make(ParametricRepository::class));
+        });
+        $this->app->bind(HomologateProductContract::class, function($app) {
+            return new HomologateProductService(
+                $app->make(HomologateProductRepository::class),
+                $app->make(HomologateProductsValidator::class)
+            );
         });
 
         $this->app->bind(HttpClientInterface::class, function ($app) {

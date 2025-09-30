@@ -4,6 +4,7 @@ namespace Emizor\SDK;
 
 use Emizor\SDK\Builders\DefaultsBuilder;
 use Emizor\SDK\Contracts\EmizorApiContract;
+use Emizor\SDK\Contracts\HomologateProductContract;
 use Emizor\SDK\Contracts\ParametricContract;
 use Emizor\SDK\DTO\RegisterDTO;
 use Emizor\SDK\Enums\ParametricType;
@@ -22,12 +23,12 @@ class EmizorApi implements EmizorApiContract
 {
     private ?string $accountId;
     private ?BeiAccount $account;
-    private HttpClientInterface $http;
     private ParametricContract $parametricService;
     private TokenService $tokenService;
     private AccountRepository $repository;
     private AccountValidator $accountValidator;
     private ParametricSyncValidator $parametricValidator;
+    private HomologateProductContract $productService;
 
     public function __construct(
         HttpClientInterface $http,
@@ -36,15 +37,15 @@ class EmizorApi implements EmizorApiContract
         AccountValidator $accountValidator,
         ParametricSyncValidator $parametricSyncValidator,
         ParametricContract $parametricService,
+        HomologateProductContract $productService,
         ?string $accountId = null
     ) {
-        $this->http = $http;
         $this->repository = $repository;
-        $this->tokenService = $tokenService;
         $this->accountValidator = $accountValidator;
         $this->accountId = $accountId;
         $this->parametricValidator = $parametricSyncValidator;
         $this->parametricService = $parametricService;
+        $this->productService = $productService;
 
         if (!is_null($this->accountId)) {
             $this->bootAuthenticatedClient();
@@ -103,11 +104,14 @@ class EmizorApi implements EmizorApiContract
         }
         $this->parametricValidator->validate([$type]);
 
-        return $this->parametricService->setHost($this->account->bei_host)->setToken($this->account->bei_token)->get($type, $this->accountId);
+        return $this->parametricService->get($type, $this->accountId);
     }
 
     public function setDefaults(Closure $callback): self
     {
+        if (is_null($this->accountId)) {
+            throw new \LogicException("Debes instanciar con accountId para definir las configuraciones por defecto.");
+        }
         $builder = new DefaultsBuilder();
 
         $callback($builder);
@@ -121,7 +125,25 @@ class EmizorApi implements EmizorApiContract
 
     public function getDefaults(): array
     {
+        if (is_null($this->accountId)) {
+            throw new \LogicException("Debes instanciar con accountId para obtener las configuraciones por defecto.");
+        }
         return $this->repository->getDefaults($this->accountId);
     }
 
+    public function homologateProduct(array $products): void
+    {
+        if (is_null($this->accountId)) {
+            throw new \LogicException("Debes instanciar con accountId para usar la homologación de productos.");
+        }
+        $this->productService->homologate($products, $this->accountId);
+    }
+
+    public function homologateProductList():array
+    {
+        if (is_null($this->accountId)) {
+            throw new \LogicException("Debes instanciar con accountId para usar el listado de homologación.");
+        }
+        return $this->productService->listHomologate($this->accountId);
+    }
 }

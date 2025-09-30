@@ -52,4 +52,15 @@ interface EmizorApiContract {
      * @return array
      */
     public function getDefaults(): array;
+
+    /**
+     * @param array $products
+     * @return void
+     */
+    public function homologateProduct(array $products):void;
+
+    /**
+     * @return array $products
+     */
+    public function homologateProductList():array;
 }

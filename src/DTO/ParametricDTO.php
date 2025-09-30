@@ -16,22 +16,9 @@ class ParametricDTO
         public ?string $accountId = null
     ) {}
 
-    /**
-     * Construir desde un array (p.e. respuesta de API externa).
-     */
-    public static function fromArray(array $data, ParametricType $type, ?string $accountId = null): self
-    {
-        return new self(
-            code: $data['codigo'] ?? '',
-            description: $data['descripcion'] ?? '',
-            type: $type,
-            activityCode: $data['actividadCodigo'] ?? null,
-            accountId: $accountId
-        );
-    }
 
     /**
-     * Construir desde un modelo global.
+     * Build for global parametric
      */
     public static function fromGlobalModel(BeiGlobalParametric $model): self
     {
@@ -43,7 +30,7 @@ class ParametricDTO
     }
 
     /**
-     * Construir desde un modelo específico.
+     * Build for specific parametric
      */
     public static function fromSpecificModel(BeiSpecificParametric $model): self
     {
@@ -52,21 +39,25 @@ class ParametricDTO
             description: $model->bei_description,
             type: ParametricType::from($model->bei_type),
             activityCode: $model->bei_activity_code,
-            accountId: $model->bei_account_id
         );
     }
 
     /**
-     * Convertir DTO a array (para exponer en contract / API).
+     * Convert to array each DTO parametric
      */
     public function toArray(): array
     {
-        return [
-            'code' => $this->code,
-            'description' => $this->description,
-            'type' => $this->type->value,
-            'activity_code' => $this->activityCode,
-            'account_id' => $this->accountId,
-        ];
+        if($this->type->value == ParametricType::PRODUCTOS_SIN->value) {
+            return [
+                'bei_code' => $this->code,
+                'bei_description' => $this->description,
+                'bei_activity_code' => $this->activityCode,
+            ];
+        } else {
+            return [
+                'bei_code' => $this->code,
+                'bei_description' => $this->description,
+            ];
+        }
     }
 }

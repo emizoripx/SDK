@@ -36,7 +36,6 @@ class BeiAccount extends Model
         'bei_defaults' => 'array',
     ];
 
-    // Generar UUID automáticamente si no se pasa
     protected static function booted()
     {
         static::creating(function ($account) {

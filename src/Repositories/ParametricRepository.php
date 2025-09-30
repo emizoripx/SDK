@@ -42,11 +42,9 @@ class ParametricRepository
     public function list( $type, $accountId=null):array
     {
         if ( in_array( ParametricType::from($type), [ParametricType::ACTIVIDADES, ParametricType::PRODUCTOS_SIN, ParametricType::LEYENDAS])) {
-            $parametrics = BeiSpecificParametric::where('bei_account_id', $accountId)->where("bei_type", $type)->get();
-            return $parametrics->map(fn ($m) => ParametricDTO::fromSpecificModel($m)->toArray())->toArray();
+            return BeiSpecificParametric::where('bei_account_id', $accountId)->where("bei_type", $type)->get()?->map(fn ($m) => ParametricDTO::fromSpecificModel($m)->toArray())->toArray();
         } else {
-            $parametrics = BeiGlobalParametric::where("bei_type", $type)->get();
-            return $parametrics->map(fn ($m) => ParametricDTO::fromGlobalModel($m)->toArray())->toArray();
+            return BeiGlobalParametric::where("bei_type", $type)->get()?->map(fn ($m) => ParametricDTO::fromGlobalModel($m)->toArray())->toArray();
         }
 
     }

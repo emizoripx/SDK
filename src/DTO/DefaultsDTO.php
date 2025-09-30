@@ -3,7 +3,7 @@
 namespace Emizor\SDK\DTO;
 
 use Emizor\SDK\Exceptions\EmizorApiDefaultsValidationException;
-use Emizor\SDK\Rules\RuleCheckPaymentMethod;
+use Emizor\SDK\Rules\CheckParametricRule;
 use Emizor\SDK\Rules\RuleCheckTypeDocuments;
 use Illuminate\Support\Facades\Validator;
 
@@ -33,7 +33,7 @@ final class DefaultsDTO
             'type_document' => ['nullable', 'string', new RuleCheckTypeDocuments()],
             'branch' => ['nullable', 'integer','min:0','max:20'],
             'pos' => ['nullable', 'integer',"min:0","max:100"],
-            'payment_method' => ['nullable', 'string', new RuleCheckPaymentMethod()],
+            'payment_method' => ['nullable', 'string', new CheckParametricRule("payment_method")],
             'reason_revocation' => ['nullable', 'integer', "in:1,3"],
         ];
 
