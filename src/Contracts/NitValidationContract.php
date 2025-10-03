@@ -2,16 +2,16 @@
 
 namespace Emizor\SDK\Contracts;
 
-interface TokenContract
+interface NitValidationContract
 {
 
     /**
      * Generate token using credentials, specifying the host dynamically.
      *
      * @param string $host
-     * @param string $clientId
-     * @param string $clientSecret
+     * @param string $token
+     * @param string $nit
      * @return array
      */
-    public function generate(string $host, string $clientId, string $clientSecret): array;
+    public function validate(string $host, string $token, string $nit): array;
 }

@@ -2,42 +2,49 @@
 
 namespace Emizor\SDK;
 
+use Closure;
 use Emizor\SDK\Builders\DefaultsBuilder;
 use Emizor\SDK\Contracts\EmizorApiContract;
 use Emizor\SDK\Contracts\HomologateProductContract;
+use Emizor\SDK\Contracts\Invoice\InvoiceManagerContract;
+use Emizor\SDK\Contracts\NitValidationContract;
 use Emizor\SDK\Contracts\ParametricContract;
 use Emizor\SDK\DTO\RegisterDTO;
-use Emizor\SDK\Enums\ParametricType;
+use Emizor\SDK\Exceptions\EmizorApiRegisterException;
 use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Repositories\AccountRepository;
-use Emizor\SDK\Repositories\ParametricRepository;
-use Emizor\SDK\Services\TokenService;
-use Emizor\SDK\Services\ParametricService;
-use Emizor\SDK\Contracts\HttpClientInterface;
 use Emizor\SDK\Validators\AccountValidator;
-use Emizor\SDK\Exceptions\EmizorApiRegisterException;
 use Emizor\SDK\Validators\ParametricSyncValidator;
-use \Closure;
 
+/**
+ * Main API class for EMIZOR SDK integration.
+ *
+ * This class provides a unified interface for interacting with EMIZOR services,
+ * including account registration, parametric synchronization, invoice management,
+ * product homologation, and NIT validation.
+ *
+ * @package Emizor\SDK
+ */
 class EmizorApi implements EmizorApiContract
 {
     private ?string $accountId;
     private ?BeiAccount $account;
     private ParametricContract $parametricService;
-    private TokenService $tokenService;
     private AccountRepository $repository;
     private AccountValidator $accountValidator;
     private ParametricSyncValidator $parametricValidator;
     private HomologateProductContract $productService;
+    private InvoiceManagerContract $invoiceManager;
+    private NitValidationContract $nitValidationService;
 
     public function __construct(
-        HttpClientInterface $http,
         AccountRepository $repository,
-        TokenService $tokenService,
         AccountValidator $accountValidator,
         ParametricSyncValidator $parametricSyncValidator,
         ParametricContract $parametricService,
         HomologateProductContract $productService,
+        InvoiceManagerContract $invoiceManager,
+        NitValidationContract $nitValidationContract,
         ?string $accountId = null
     ) {
         $this->repository = $repository;
@@ -46,6 +53,8 @@ class EmizorApi implements EmizorApiContract
         $this->parametricValidator = $parametricSyncValidator;
         $this->parametricService = $parametricService;
         $this->productService = $productService;
+        $this->invoiceManager = $invoiceManager;
+        $this->nitValidationService = $nitValidationContract;
 
         if (!is_null($this->accountId)) {
             $this->bootAuthenticatedClient();
@@ -57,6 +66,13 @@ class EmizorApi implements EmizorApiContract
         $this->account = $this->accountValidator->validate($this->accountId);
     }
 
+    /**
+     * Register a new account with EMIZOR.
+     *
+     * @param RegisterDTO $dto Data transfer object containing registration details
+     * @return string The account ID
+     * @throws EmizorApiRegisterException If registration fails
+     */
     public function register(RegisterDTO $dto): string
     {
         if (!is_null($this->accountId)) {
@@ -85,6 +101,13 @@ class EmizorApi implements EmizorApiContract
         return $this->parametricService->listParametricTypes();
     }
 
+    /**
+     * Synchronize parametric data from EMIZOR API.
+     *
+     * @param array $parametrics List of parametric types to sync
+     * @return void
+     * @throws \LogicException If no account ID is set
+     */
     public function syncParametrics(array $parametrics): void
     {
         if (is_null($this->accountId)) {
@@ -145,5 +168,41 @@ class EmizorApi implements EmizorApiContract
             throw new \LogicException("Debes instanciar con accountId para usar el listado de homologación.");
         }
         return $this->productService->listHomologate($this->accountId);
+    }
+
+    /**
+     * Issue an electronic invoice.
+     *
+     * @param Closure $callback Builder callback to configure the invoice
+     * @param string $ticket Unique ticket for the invoice
+     * @return self
+     * @throws \LogicException If no account ID is set
+     */
+    public function issueInvoice(Closure $callback, string $ticket): self
+    {
+        if (is_null($this->accountId)) {
+            throw new \LogicException("Debes instanciar con accountId.");
+        }
+
+        $this->invoiceManager->createAndEmitInvoice($callback, $ticket, $this->accountId);
+
+        return $this;
+    }
+
+    public function validateNit($nit): array
+    {
+        if (is_null($this->accountId)) {
+            throw new \LogicException("Debes instanciar con accountId.");
+        }
+
+        return $this->nitValidationService->validate($this->account->bei_host, $this->account->bei_token, $nit);
+    }
+
+    public function revocateInvoice(string $ticket, int $revocationReasonCode):void
+    {
+        if (is_null($this->accountId)) {
+            throw new \LogicException("Debes instanciar con accountId.");
+        }
+        $this->invoiceManager->revocateInvoice($ticket, $revocationReasonCode);
     }
 }

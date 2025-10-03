@@ -2,7 +2,7 @@
 
 namespace Emizor\SDK\Services;
 
-use Emizor\SDK\Contracts\HttpClientInterface;
+use Emizor\SDK\Contracts\EmizorApiHttpContract;
 use Emizor\SDK\Contracts\TokenContract;
 use Carbon\Carbon;
 use Exception;
@@ -11,29 +11,22 @@ use Exception;
 class TokenService implements TokenContract
 {
 
-    protected HttpClientInterface $http;
-    protected string $host;
+    protected EmizorApiHttpContract $emizorApiHttpService;
 
-    public function __construct(HttpClientInterface $http)
+    public function __construct(EmizorApiHttpContract $emizorApiHttpService)
     {
-        $this->http = $http;
+        $this->emizorApiHttpService = $emizorApiHttpService;
     }
 
-    public function setHost(string $host): static
-    {
-        $this->host = $host;
-        $this->http = $this->http->withBaseUri($host);
-        return $this;
-    }
-
-    public function generate( string $clientId, string $clientSecret ) : array
+    public function generate(string $host, string $clientId, string $clientSecret ) : array
     {
 
-        $response = $this->http->post('/oauth/token', [
-            'client_id' => $clientId,
-            'client_secret' => $clientSecret,
-            'grant_type' => 'client_credentials',
-        ]);
+        $response = $this->emizorApiHttpService
+            ->setHost($host)
+            ->generateToken(
+                $clientId,
+                $clientSecret
+            );
 
 
         if (!isset($response['access_token'])) {

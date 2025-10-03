@@ -40,9 +40,9 @@ class LaravelHttpClient implements HttpClientInterface
         return $this->request('PUT', $uri, $data);
     }
 
-    public function delete(string $uri, array $options = []): array
+    public function delete(string $uri, array $data = [], array $options = []): array
     {
-        return $this->request('DELETE', $uri);
+        return $this->request('DELETE', $uri, $data);
     }
 
     protected function request(string $method, string $uri, array $data = []): array

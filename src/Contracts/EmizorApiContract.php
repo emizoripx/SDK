@@ -63,4 +63,27 @@ interface EmizorApiContract {
      * @return array $products
      */
     public function homologateProductList():array;
+
+    /**
+     * Issue and invoice
+     *
+     * @param Closure $callback
+     * @param string $ticket
+     * @return self
+     */
+    public function issueInvoice(Closure $callback, string $ticket):self;
+
+
+    /**
+     * @param $nit
+     * @return array
+     */
+    public function validateNit($nit): array;
+
+    /**
+     * @param string $ticket
+     * @param int $revocationReasonCode
+     * @return void
+     */
+    public function revocateInvoice(string $ticket, int $revocationReasonCode):void;
 }

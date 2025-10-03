@@ -46,6 +46,6 @@ class AccountRepository
     public function getDefaults(string $accountId): array
     {
         $account = $this->getAccount($accountId);
-        return $account->bei_defaults;
+        return $account->bei_defaults??[];
     }
 }

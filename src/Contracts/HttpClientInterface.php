@@ -48,7 +48,8 @@ interface HttpClientInterface
      * Make a DELETE request to a dynamic host.
      *
      * @param string $uri
+     * @param array $data
      * @param array $options
      */
-    public function delete(string $uri, array $options = []): array;
+    public function delete(string $uri, array $data = [], array $options = []): array;
 }

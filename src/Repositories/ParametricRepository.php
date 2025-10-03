@@ -49,5 +49,13 @@ class ParametricRepository
 
     }
 
+    public function atleastOne(string $accountId): bool
+    {
+
+        return BeiGlobalParametric::distinct('bei_type')->count('bei_type') != 4
+            && BeiSpecificParametric::where('bei_account_id', $accountId)
+                ->distinct('bei_type')->count('bei_type') != 3;
+
+    }
 
 }
