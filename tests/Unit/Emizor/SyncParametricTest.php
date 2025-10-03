@@ -7,37 +7,37 @@ use Emizor\SDK\Services\ParametricService;
 use Mockery\MockInterface;
 
 test("mock ParametricContract", function () {
-    // Creamos el mock
+    // Create the mock
     $this->mock(ParametricContract::class, function (MockInterface $mock) {
         $mock->shouldReceive('setHost')
-            ->andReturnSelf();  // Retorna el mock mismo para encadenamiento
+            ->andReturnSelf();  // Return the mock itself for chaining
 
         $mock->shouldReceive('setToken')
-            ->andReturnSelf();  // Retorna el mock mismo
+            ->andReturnSelf();  // Return the mock itself
 
         $mock->shouldReceive('sync')
-            ->andReturn([]);    // Devuelve un array vacío como ejemplo
+            ->andReturn([]);    // Return an empty array as example
 
         $mock->shouldReceive('get')
-            ->andReturn(['param1', 'param2']); // Puedes definir lo que quieras
+            ->andReturn(['param1', 'param2']); // You can define whatever you want
     });
 
-    // Recuperamos el mock del contenedor
+    // Retrieve the mock from the container
     $parametric = app(ParametricContract::class);
 
-    // Probamos el encadenamiento
+    // Test the chaining
     $parametric->setHost('https://api.test')
         ->setToken('12345')
         ->sync('TYPE', 'accountId');
 
 
     $getResult = $parametric->get('TYPE', 'accountId');
-    expect($getResult)->toBeArray()->toHaveCount(2); // get devuelve ['param1','param2']
+    expect($getResult)->toBeArray()->toHaveCount(2); // get returns ['param1','param2']
 });
 
 
 test("sync parametric stores data in bei_specific_parametrics table", function () {
-    // 1️⃣ Mock del cliente HTTP que devuelve datos controlados
+    // 1. Mock HTTP client that returns controlled data
     $httpMock = Mockery::mock(HttpClientInterface::class);
     $httpMock->shouldReceive('get')
         ->with('/api/v1/parametricas/actividades')
@@ -55,16 +55,16 @@ test("sync parametric stores data in bei_specific_parametrics table", function (
             ]
         ]);
 
-    // 2️⃣ Repositorio real
+    // 2. Real repository
     $repository = new ParametricRepository();
 
-    // 3️⃣ Servicio con HTTP mock y repositorio real
+    // 3. Service with HTTP mock and real repository
     $service = new ParametricService($httpMock, $repository);
 
-    // 4️⃣ Ejecutamos sync
+    // 4. Execute sync
     $service->sync('actividades', 'account-123');
 
-    // 5️⃣ Verificamos que los datos se guardaron en la tabla real
+    // 5. Verify data was saved in the real table
     $this->assertDatabaseHas('bei_specific_parametrics', [
         'bei_account_id' => 'account-123',
         'bei_type' => 'actividades',

@@ -22,12 +22,13 @@ class InvoiceRevocationService implements InvoiceRevocationContract
     {
         $invoice = BeiInvoice::findByTicket($ticket);
         info("revocate " , [$invoice]);
-
+        $invoice->setBeiRevocationCode($revocationReasonCode);
         if ( $invoice->isInProgress() || $invoice->isCompleteRevocation() || $invoice->isInProgressRevocation()){
             info("REVOCATE WITH INCORRECT STATUS " . " TICKET: " . $ticket);
             return;
         }
         $id_log_request = BeiRequestLogs::saveLog($ticket, ["revocation_code"=> $invoice->bei_revocation_code], BeiRequestLogs::REVOCATION_EVENT);
+
 
         $response = null;
         try {

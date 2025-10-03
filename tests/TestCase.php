@@ -16,7 +16,7 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Configuración de entorno para tests con SQLite en memoria
+     * Environment setup for tests with SQLite in memory
      */
     protected function getEnvironmentSetUp($app)
     {
@@ -33,7 +33,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // Ejecutar migraciones automáticamente
+        // Run migrations automatically
         $this->loadMigrationsFrom(__DIR__ . '/../src/Database/migrations');
 
     }

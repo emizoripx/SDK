@@ -53,9 +53,9 @@ class EmizorApiService implements EmizorApiHttpContract
 
     public function getDetailInvoice(string $ticket):array
     {
-        $endpoint = "/api/v1/facturas/$ticket?unique_code=true";
+        $endpoint = "/api/v1/facturas/$ticket";
         info("send to " . $endpoint);
-        return $this->http->get( $endpoint);
+        return $this->http->get( $endpoint, ["unique_code" => 'true']);
     }
 
     public function revocateInvoice(string $ticket, int $revocationReasonCode):array

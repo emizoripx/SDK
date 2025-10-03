@@ -15,6 +15,7 @@ use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Repositories\AccountRepository;
 use Emizor\SDK\Validators\AccountValidator;
 use Emizor\SDK\Validators\ParametricSyncValidator;
+use OpenApi\Annotations as OA;
 
 /**
  * Main API class for EMIZOR SDK integration.
@@ -24,6 +25,13 @@ use Emizor\SDK\Validators\ParametricSyncValidator;
  * product homologation, and NIT validation.
  *
  * @package Emizor\SDK
+ *
+ * @OA\Info(title="EMIZOR SDK API", version="1.0.0", description="SDK for Bolivian electronic invoicing")
+ * @OA\Server(url="https://api.emizor.com")
+ * @OA\Tag(name="Account", description="Account management operations")
+ * @OA\Tag(name="Parametrics", description="Parametric data operations")
+ * @OA\Tag(name="Invoices", description="Invoice management operations")
+ * @OA\Tag(name="Products", description="Product homologation operations")
  */
 class EmizorApi implements EmizorApiContract
 {
@@ -67,17 +75,66 @@ class EmizorApi implements EmizorApiContract
     }
 
     /**
+     * Ensure the instance is authenticated with an account ID.
+     *
+     * @throws \LogicException If no account ID is set
+     */
+    private function ensureAuthenticated(): void
+    {
+        if (is_null($this->accountId)) {
+            throw new \LogicException("Debes instanciar con accountId para usar esta funcionalidad.");
+        }
+    }
+
+    /**
+     * Ensure the instance is not authenticated (for registration).
+     *
+     * @throws EmizorApiRegisterException If account ID is already set
+     */
+    private function ensureNotAuthenticated(): void
+    {
+        if (!is_null($this->accountId)) {
+            throw new EmizorApiRegisterException("No se puede registrar usando una instancia vinculada a una cuenta.");
+        }
+    }
+
+    /**
      * Register a new account with EMIZOR.
      *
      * @param RegisterDTO $dto Data transfer object containing registration details
      * @return string The account ID
      * @throws EmizorApiRegisterException If registration fails
+     *
+     * @OA\Post(
+     *     path="/register",
+     *     tags={"Account"},
+     *     summary="Register a new EMIZOR account",
+     *     description="Creates a new account with the provided credentials",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Registration data",
+     *         @OA\JsonContent(
+     *             required={"clientId","clientSecret","host"},
+     *             @OA\Property(property="clientId", type="string", example="client_123"),
+     *             @OA\Property(property="clientSecret", type="string", example="secret_456"),
+     *             @OA\Property(property="host", type="string", example="PILOTO"),
+     *             @OA\Property(property="demo", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Account registered successfully",
+     *         @OA\JsonContent(type="string", example="uuid-account-id")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Registration failed"
+     *     )
+     * )
      */
     public function register(RegisterDTO $dto): string
     {
-        if (!is_null($this->accountId)) {
-            throw new EmizorApiRegisterException("No se puede registrar usando una instancia vinculada a una cuenta.");
-        }
+        $this->ensureNotAuthenticated();
 
         try {
             $account = $this->repository->create([
@@ -107,12 +164,33 @@ class EmizorApi implements EmizorApiContract
      * @param array $parametrics List of parametric types to sync
      * @return void
      * @throws \LogicException If no account ID is set
+     *
+     * @OA\Post(
+     *     path="/sync-parametrics",
+     *     tags={"Parametrics"},
+     *     summary="Synchronize parametric data",
+     *     description="Syncs fiscal parametric data from EMIZOR API",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="string", example="actividades"),
+     *             description="List of parametric types"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Parametrics synced successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized - account not authenticated"
+     *     )
+     * )
      */
     public function syncParametrics(array $parametrics): void
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId para usar syncParametrics.");
-        }
+        $this->ensureAuthenticated();
         $this->parametricValidator->validate($parametrics);
 
         foreach ($parametrics as $type) {
@@ -122,9 +200,7 @@ class EmizorApi implements EmizorApiContract
 
     public function getParametric($type): array
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId para usar getParametrics.");
-        }
+        $this->ensureAuthenticated();
         $this->parametricValidator->validate([$type]);
 
         return $this->parametricService->get($type, $this->accountId);
@@ -132,9 +208,7 @@ class EmizorApi implements EmizorApiContract
 
     public function setDefaults(Closure $callback): self
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId para definir las configuraciones por defecto.");
-        }
+        $this->ensureAuthenticated();
         $builder = new DefaultsBuilder();
 
         $callback($builder);
@@ -148,25 +222,19 @@ class EmizorApi implements EmizorApiContract
 
     public function getDefaults(): array
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId para obtener las configuraciones por defecto.");
-        }
+        $this->ensureAuthenticated();
         return $this->repository->getDefaults($this->accountId);
     }
 
     public function homologateProduct(array $products): void
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId para usar la homologación de productos.");
-        }
+        $this->ensureAuthenticated();
         $this->productService->homologate($products, $this->accountId);
     }
 
     public function homologateProductList():array
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId para usar el listado de homologación.");
-        }
+        $this->ensureAuthenticated();
         return $this->productService->listHomologate($this->accountId);
     }
 
@@ -177,12 +245,33 @@ class EmizorApi implements EmizorApiContract
      * @param string $ticket Unique ticket for the invoice
      * @return self
      * @throws \LogicException If no account ID is set
+     *
+     * @OA\Post(
+     *     path="/issue-invoice",
+     *     tags={"Invoices"},
+     *     summary="Issue an electronic invoice",
+     *     description="Creates and emits an electronic invoice",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"ticket"},
+     *             @OA\Property(property="ticket", type="string", example="INV-123"),
+     *             @OA\Property(property="invoice_data", type="object", description="Invoice configuration via callback")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Invoice issued successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized - account not authenticated"
+     *     )
+     * )
      */
     public function issueInvoice(Closure $callback, string $ticket): self
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId.");
-        }
+        $this->ensureAuthenticated();
 
         $this->invoiceManager->createAndEmitInvoice($callback, $ticket, $this->accountId);
 
@@ -191,18 +280,14 @@ class EmizorApi implements EmizorApiContract
 
     public function validateNit($nit): array
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId.");
-        }
+        $this->ensureAuthenticated();
 
         return $this->nitValidationService->validate($this->account->bei_host, $this->account->bei_token, $nit);
     }
 
     public function revocateInvoice(string $ticket, int $revocationReasonCode):void
     {
-        if (is_null($this->accountId)) {
-            throw new \LogicException("Debes instanciar con accountId.");
-        }
+        $this->ensureAuthenticated();
         $this->invoiceManager->revocateInvoice($ticket, $revocationReasonCode);
     }
 }

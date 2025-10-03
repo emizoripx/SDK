@@ -58,4 +58,31 @@ class ParametricRepository
 
     }
 
+    public function hasType(string $type, string $accountId = null): bool
+    {
+        if (in_array(ParametricType::from($type), [ParametricType::ACTIVIDADES, ParametricType::PRODUCTOS_SIN, ParametricType::LEYENDAS])) {
+            return BeiSpecificParametric::where('bei_account_id', $accountId)->where('bei_type', $type)->exists();
+        } else {
+            return BeiGlobalParametric::where('bei_type', $type)->exists();
+        }
+    }
+
+    public function listAll(string $accountId): array
+    {
+        $all = [];
+        $types = [
+            'motivos-de-anulacion',
+            'tipos-documento-de-identidad',
+            'metodos-de-pago',
+            'unidades',
+            'actividades',
+            'leyendas',
+            'productos-sin'
+        ];
+        foreach ($types as $type) {
+            $all = array_merge($all, $this->list($type, $accountId));
+        }
+        return $all;
+    }
+
 }

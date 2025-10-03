@@ -170,6 +170,20 @@ The SDK fires the following events:
 
 Contributions are welcome. Please follow the changelog conventions.
 
+## API Documentation
+
+OpenAPI/Swagger documentation is available in `docs/swagger.yaml`.
+
+## Admin UI (Package Included)
+
+The package includes a basic web interface for testing and reviewing the SDK functionality:
+
+- **Invoices**: `/emizor-admin/invoices` - List and view invoice details with filters
+- **Configuration**: `/emizor-admin/config` - View account settings and synced parametrics
+- **Config Check**: `/emizor-admin/config/check` - Verify configuration completeness
+
+Routes are automatically loaded when the package is registered. Views use Bootstrap for styling. Access via `?account_id=uuid` parameter for testing different accounts.
+
 ## License
 
 MIT

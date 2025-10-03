@@ -5,8 +5,6 @@ namespace Emizor\SDK\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class BeiInvoice extends Model
 {
@@ -42,6 +40,8 @@ class BeiInvoice extends Model
         'bei_client' => 'array',
         'bei_details' => 'array',
         'bei_additional' => 'array',
+        'bei_emission_date' => 'datetime',
+        'bei_revocation_date' => 'datetime',
     ];
 
 
@@ -147,18 +147,19 @@ class BeiInvoice extends Model
 
     public function updateBEIfields($data)
     {
+        info("update bei fields" , $data);
         $this->bei_cuf = $data['cuf'];
         $this->bei_emission_date = $data['fechaEmision'];
 
-        $this->bei_additional = json_encode(
+        $this->bei_additional =
             [
                 'leyenda' => isset($data['leyenda']) ?  $data['leyenda']: "",
                 'urlSin' => isset($data['urlSin']) ? $data['urlSin']:"",
                 'pdf_url' => isset($data['pdf_url']) ?$data['pdf_url']:"",
                 'sucursal' => isset($data['sucursal']) ? $data['sucursal'] :"",
             ]
-        );
-
+        ;
+        info("termina update field");
 
         $this->saveQuietly();
     }
@@ -201,15 +202,10 @@ class BeiInvoice extends Model
         return $this->discount * $this->getSubtotal()/100;
     }
 
-    public function setBeiRevocationCode()
+    public function setBeiRevocationCode($value)
     {
-        if(! in_array($this->bei_revocation_code,[1,2,3,4])  ) {
-            // $value = isset(request()) && isset(request()->bei_revocation_code ) && in_array(request()->bei_revocation_code, [1, 2, 3, 4]) ? request()->bei_revocation_code: 1;
-            $value = null !== request() && isset(request()->bei_revocation_code) && in_array(request()->bei_revocation_code, [1, 2, 3, 4]) ? request()->bei_revocation_code : 1;
-
-            $this->bei_revocation_code = $value;
-            $this->saveQuietly();
-        }
+        $this->bei_revocation_code = $value;
+        $this->saveQuietly();
     }
 
     public function getLeyendaSin()
@@ -226,21 +222,25 @@ class BeiInvoice extends Model
 
     public function getAdditional()
     {
-        return json_decode($this->bei_additional);
+        if (empty($this->bei_additional)) {
+            return [];
+        }
+        return $this->bei_additional;
+
+    }
+
+    public function getUrlSin()
+    {
+        if (!empty($additional = $this->getAdditional())) {
+            return isset($additional['urlSin']) && !is_null($additional['urlSin']) ? $additional['urlSin'] : '';
+        }
+        return "";
     }
 
     public function getLeyenda()
     {
         if (empty($additional = $this->getAdditional())) {
             return  isset($additional->leyenda) && !is_null($additional->leyenda) ? $additional->leyenda : '';
-        }
-        return "";
-    }
-
-    public function getUrlSin()
-    {
-        if (!  empty($additional = $this->getAdditional())) {
-            return  isset($additional->urlSin) && !is_null($additional->urlSin) ? $additional->urlSin : '';
         }
         return "";
     }
@@ -252,18 +252,10 @@ class BeiInvoice extends Model
         return 691;
     }
 
-    public function getPdfPath() {
-
-        if ($this->invitations()->exists()) {
-            $invitation = $this->invitations()->first();
-        } else {
-            $this->service()->createInvitations();
-            $invitation = $this->invitations()->first();
-        }
-
-        $file_path = $this->client->invoice_filepath($invitation).$this->numberFormatter().'.pdf';
-
-        return Storage::url($file_path);
+    public function hasPdf(): bool
+    {
+        $additional = $this->getAdditional();
+        return $additional && isset($additional['pdf_url']) && !empty($additional['pdf_url']);
     }
 
     public function setBeiEmitter()

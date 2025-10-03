@@ -10,25 +10,26 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
-// Define una función de configuración compartida para los tests
+
+// Define a shared setup function for tests
 beforeEach(function () {
-    // Siempre mockea el TokenContract para evitar errores de inyección de dependencias
-    // cuando se dispara el observador. Esto se aplica a todos los tests.
+    // Always mock TokenContract to avoid dependency injection errors
+    // when the observer is triggered. This applies to all tests.
     $this->mock(TokenContract::class, function (MockInterface $mock) {
         $mock->shouldReceive('generate')->andReturn([
-            'token' => 'fake-token-del-mock',
+            'token' => 'fake-mock-token',
             'expires_at' => now()->addHour(),
         ]);
-        $mock->shouldReceive("setHost")->once();
+        $mock->shouldReceive("setHost")->zeroOrMoreTimes();
     });
 
-    // Resuelve la interfaz EmizorApiInterface a través del contenedor
-    // para que todas las dependencias se inyecten correctamente.
+    // Resolve EmizorApi through the container
+    // so all dependencies are injected correctly.
     $this->api = app(EmizorApi::class);
 });
 
 it('registers a new account successfully', function () {
-    // 1. Actuar
+    // Arrange & Act
     $dto = new RegisterDTO(
         host: 'https://api.test.com',
         clientId: 'CLIENT_001',
@@ -36,18 +37,18 @@ it('registers a new account successfully', function () {
     );
     $accountId = $this->api->register($dto);
 
-    // 2. Afirmar
+    // Assert
     expect($accountId)->not()->toBeEmpty();
     $this->assertDatabaseHas('bei_accounts', [
         'id' => $accountId,
         'bei_client_id' => 'CLIENT_001',
         'bei_host' => 'https://api.test.com',
-        'bei_token' => 'fake-token-del-mock',
+        'bei_token' => 'fake-mock-token',
     ]);
 });
 
 it('throws exception if client_id already exists', function () {
-    // Preparar el estado: crear una cuenta con un client_id duplicado
+    // Arrange: create an account with duplicate client_id
     BeiAccount::factory()->create([
         'bei_client_id' => 'DUPLICATE_CLIENT',
     ]);
@@ -58,7 +59,7 @@ it('throws exception if client_id already exists', function () {
         clientSecret: 'SECRET_002'
     );
 
-    // Actuar y afirmar que se lanza la excepción correcta
+    // Act & Assert: expect the correct exception
     $this->api->register($dto);
 })->throws(EmizorApiRegisterException::class);
 

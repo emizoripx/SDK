@@ -14,7 +14,7 @@ return new class extends Migration
             /**
              * Automatic / Core data
              */
-            $table->id()->primary();
+            $table->id();
             $table->string('bei_ticket')->unique();
             $table->string('bei_account_id');
             $table->enum('bei_revocation_code',[1,2,3,4])->nullable();

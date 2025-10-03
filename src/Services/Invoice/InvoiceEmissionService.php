@@ -58,10 +58,10 @@ class InvoiceEmissionService implements InvoiceEmissionContract
             BeiRequestLogs::saveLog($ticket, $data, BeiRequestLogs::EMISSION_EVENT, 200, $id_log_request);
 
             $invoice->markInProgressEmission();
-            info("Actualizando con CUF la factura " . $ticket);
 
+            info("ANTES =========");
             $invoice->updateBEIfields($response["data"]);
-
+            info("DESPUES =========");
             if ($response["data"]['emission_type_code'] == 2) {
                 //OFFLINE LOGIC
                 BeiOfflineInvoiceTracking::register($ticket);

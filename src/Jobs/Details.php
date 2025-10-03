@@ -56,9 +56,9 @@ class Details implements ShouldQueue
 
         } catch (Throwable $ex) {
             info("Error  TICKET: " . $this->ticket." Message: ". $ex->getMessage() . " File : " . $ex->getFile() . " Line: " .$ex->getLine());
-            $attempts_after = $this->delay_times[$this->attempts() - 1];
+//            $attempts_after = $this->delay_times[$this->attempts() - 1];
 
-            $this->release($attempts_after);
+            $this->release();
         }
     }
 

@@ -4,6 +4,7 @@ namespace Emizor\SDK;
 
 use Emizor\SDK\Contracts\EmizorApiContract;
 use Emizor\SDK\Contracts\EmizorApiHttpContract;
+use Emizor\SDK\Contracts\GetInvoiceDetailContract;
 use Emizor\SDK\Contracts\HomologateProductContract;
 use Emizor\SDK\Contracts\HttpClientInterface;
 use Emizor\SDK\Contracts\Invoice\InvoiceEmissionContract;
@@ -22,6 +23,7 @@ use Emizor\SDK\Repositories\InvoiceRepository;
 use Emizor\SDK\Repositories\ParametricRepository;
 use Emizor\SDK\Services\EmizorApiService;
 use Emizor\SDK\Services\HomologateProductService;
+use Emizor\SDK\Services\Invoice\GetInvoiceDetailService;
 use Emizor\SDK\Services\Invoice\InvoiceEmissionService;
 use Emizor\SDK\Services\Invoice\InvoiceManagerService;
 use Emizor\SDK\Services\Invoice\InvoiceRevocationService;
@@ -44,6 +46,9 @@ class EmizorServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__ . "/Database/migrations");
 
+        $this->loadRoutesFrom(__DIR__ . '/routes/web.php');
+
+        $this->loadViewsFrom(__DIR__ . '/resources/views', 'emizor');
 
         $this->loadFactoriesFrom(__DIR__ . '/Database/factories');
 
@@ -52,7 +57,7 @@ class EmizorServiceProvider extends ServiceProvider
 
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
-            $schedule->job(new BeiTrackingOfflineInvoicesCron)->everyMinute()->withoutOverlapping()->name('tracking-offline-invoices')->onOneServer();
+            $schedule->job(new BeiTrackingOfflineInvoicesCron)->Hourly()->withoutOverlapping()->name('tracking-offline-invoices')->onOneServer();
         });
 
         $listeners = config('emizor_sdk.listeners', []);
@@ -69,6 +74,11 @@ class EmizorServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+
+        $this->app->bind(GetInvoiceDetailContract::class, function ($app) {
+            $http =  $app->make(EmizorApiHttpContract::class);
+            return new GetInvoiceDetailService($http);
+        });
 
         $this->app->bind(InvoiceRevocationContract::class, function ($app) {
             $http =  $app->make(EmizorApiHttpContract::class);

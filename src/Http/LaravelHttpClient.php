@@ -47,7 +47,21 @@ class LaravelHttpClient implements HttpClientInterface
 
     protected function request(string $method, string $uri, array $data = []): array
     {
-
+      /*  $this->client = $this->client->beforeSending(function ($request, $options) use ($method, $data) {
+            $url = (string) $request->getUri();
+            $headers = $request->getHeaders();
+            $curl = "curl -X $method '$url'";
+            if (in_array($method, ['POST', 'PUT', 'DELETE']) && !empty($data)) {
+                $body = is_array($data) ? json_encode($data) : $data;
+                $curl .= " -d '$body'";
+            }
+            foreach ($headers as $name => $values) {
+                foreach ($values as $value) {
+                    $curl .= " -H '$name: $value'";
+                }
+            }
+            info("CURL: $curl");
+        });*/
         $response = match ($method) {
             'GET' => $this->client->get($uri, $data),
             'POST' => $this->client->post($uri, $data),

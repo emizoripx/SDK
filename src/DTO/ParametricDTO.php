@@ -47,17 +47,16 @@ class ParametricDTO
      */
     public function toArray(): array
     {
+        $array = [
+            'bei_type' => $this->type->value,
+            'bei_code' => $this->code,
+            'bei_description' => $this->description,
+        ];
+
         if($this->type->value == ParametricType::PRODUCTOS_SIN->value) {
-            return [
-                'bei_code' => $this->code,
-                'bei_description' => $this->description,
-                'bei_activity_code' => $this->activityCode,
-            ];
-        } else {
-            return [
-                'bei_code' => $this->code,
-                'bei_description' => $this->description,
-            ];
+            $array['bei_activity_code'] = $this->activityCode;
         }
+
+        return $array;
     }
 }

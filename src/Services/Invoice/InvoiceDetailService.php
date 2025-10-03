@@ -45,7 +45,7 @@ class InvoiceDetailService
         return $this->emizorApiService
             ->setHost($invoice->bei_account->bei_host)
             ->setToken($invoice->bei_account->bei_token)
-            ->getDetailInvoice($invoice->bei_cuf);
+            ->getDetailInvoice($invoice->bei_ticket);
     }
 
     private function handleSuccessfulResponse(BeiInvoice $invoice, array $response, string $id_log_response)
@@ -58,7 +58,9 @@ class InvoiceDetailService
             BeiRequestLogs::saveLog($ticket, $response, BeiRequestLogs::GET_DETAIL_EVENT, 200, $id_log_response);
             try {
                 $this->processResponse($invoice, $response);
+                info("ANTES DETAILSSS ===============");
                 $invoice->updateBEIfields($response);
+                info("DEPUES DETAILSSS ===============");
                 BeiOfflineInvoiceTracking::remove($ticket);
                 return;
 
