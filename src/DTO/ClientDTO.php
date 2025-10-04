@@ -16,6 +16,7 @@ final class ClientDTO
         private string $client_business_name,
         private ?string $client_complement = null,
         private string $client_document_number_type = "ci",
+        private ?string $client_email = null,
     ) {
         // generate uuid short if not set
         if (empty($this->client_code)) {
@@ -34,6 +35,7 @@ final class ClientDTO
             'client_business_name'        => $this->client_business_name,
             'client_complement'           => $this->client_complement,
             'client_document_number_type' => $this->client_document_number_type,
+            'client_email'                => $this->client_email,
         ];
 
         $rules = [
@@ -42,6 +44,7 @@ final class ClientDTO
             'client_business_name'        => ['required', 'string'],
             'client_complement'           => ['nullable', 'string'],
             'client_document_number_type' => ["required", "string", new CheckParametricRule(ParametricType::TIPOS_DOCUMENTO_IDENTIDAD)],
+            'client_email'                => ['nullable', 'email'],
         ];
         $messages = [
             'client_code.required' => 'El "client_code" es obligatorio.',
@@ -59,6 +62,8 @@ final class ClientDTO
             'client_document_number_type.required' => 'El tipo de documento es obligatorio.',
             'client_document_number_type.string'   => 'El tipo de documento debe ser un texto.',
             'client_document_number_type.in'       => 'El tipo de documento debe ser CI, NIT o PASSPORT.',
+
+            'client_email.email' => 'El "client_email" debe ser una dirección de correo electrónico válida.',
         ];
 
         $validator = Validator::make($data, $rules, $messages);
@@ -78,6 +83,7 @@ final class ClientDTO
             'client_business_name'        => $this->client_business_name,
             'client_complement'           => $this->client_complement,
             'client_document_number_type' => $this->client_document_number_type,
+            'client_email'                => $this->client_email,
         ];
     }
 }

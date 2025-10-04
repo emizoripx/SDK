@@ -21,13 +21,8 @@ class TokenService implements TokenContract
     public function generate(string $host, string $clientId, string $clientSecret ) : array
     {
 
-        $response = $this->emizorApiHttpService
-            ->setHost($host)
-            ->generateToken(
-                $clientId,
-                $clientSecret
-            );
-
+        $response = $this->emizorApiHttpService->generateToken($host, $clientId, $clientSecret);
+        info("response token " , [$response]);
 
         if (!isset($response['access_token'])) {
             throw new Exception("Error al generar token: respuesta inválida");

@@ -9,6 +9,7 @@ use Emizor\SDK\Contracts\HomologateProductContract;
 use Emizor\SDK\Contracts\Invoice\InvoiceManagerContract;
 use Emizor\SDK\Contracts\NitValidationContract;
 use Emizor\SDK\Contracts\ParametricContract;
+use Emizor\SDK\Contracts\RegisterContract;
 use Emizor\SDK\DTO\RegisterDTO;
 use Emizor\SDK\Exceptions\EmizorApiRegisterException;
 use Emizor\SDK\Models\BeiAccount;
@@ -44,6 +45,7 @@ class EmizorApi implements EmizorApiContract
     private HomologateProductContract $productService;
     private InvoiceManagerContract $invoiceManager;
     private NitValidationContract $nitValidationService;
+    private RegisterContract $registerService;
 
     public function __construct(
         AccountRepository $repository,
@@ -53,6 +55,7 @@ class EmizorApi implements EmizorApiContract
         HomologateProductContract $productService,
         InvoiceManagerContract $invoiceManager,
         NitValidationContract $nitValidationContract,
+        RegisterContract $registerService,
         ?string $accountId = null
     ) {
         $this->repository = $repository;
@@ -63,6 +66,7 @@ class EmizorApi implements EmizorApiContract
         $this->productService = $productService;
         $this->invoiceManager = $invoiceManager;
         $this->nitValidationService = $nitValidationContract;
+        $this->registerService = $registerService;
 
         if (!is_null($this->accountId)) {
             $this->bootAuthenticatedClient();
@@ -132,26 +136,17 @@ class EmizorApi implements EmizorApiContract
      *     )
      * )
      */
-    public function register(RegisterDTO $dto): string
-    {
-        $this->ensureNotAuthenticated();
+     public function register(Closure $callback): string
+     {
+         $this->ensureNotAuthenticated();
 
-        try {
-            $account = $this->repository->create([
-                'id'                 => \Str::uuid()->toString(),
-                'bei_enable'         => true,
-                'bei_verified_setup' => true,
-                'bei_client_id'      => $dto->clientId,
-                'bei_client_secret'  => $dto->clientSecret,
-                'bei_host'           => $dto->host,
-                'bei_demo'           => $dto->demo,
-            ]);
-
-            return $account->id;
-        } catch (\Exception $e) {
-            throw new EmizorApiRegisterException("Error al registrar la cuenta: " . $e->getMessage());
-        }
-    }
+         try {
+             $account = $this->registerService->register($callback);
+             return $account->id;
+         } catch (\Exception $e) {
+             throw new EmizorApiRegisterException("Error al registrar la cuenta: " . $e->getMessage());
+         }
+     }
 
     public function listParametricsTypes(): array
     {
@@ -188,15 +183,20 @@ class EmizorApi implements EmizorApiContract
      *     )
      * )
      */
-    public function syncParametrics(array $parametrics): void
-    {
-        $this->ensureAuthenticated();
-        $this->parametricValidator->validate($parametrics);
+     public function syncParametrics(array $parametrics): void
+     {
+         $this->ensureAuthenticated();
+         $this->parametricValidator->validate($parametrics);
 
-        foreach ($parametrics as $type) {
-            $this->parametricService->setHost($this->account->bei_host)->setToken($this->account->bei_token)->sync($type, $this->accountId);
-        }
-    }
+         foreach ($parametrics as $type) {
+             $this->parametricService->sync($this->account->bei_host, $this->account->bei_token, $type, $this->accountId);
+         }
+     }
+
+     public function sync(array $parametrics): void
+     {
+         $this->syncParametrics($parametrics);
+     }
 
     public function getParametric($type): array
     {

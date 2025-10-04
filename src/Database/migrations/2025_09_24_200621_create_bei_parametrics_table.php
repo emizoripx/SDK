@@ -19,7 +19,7 @@ return new class extends Migration {
 
         Schema::create('bei_global_parametrics', function(Blueprint $table){
             $table->string('bei_code');
-            $table->string('bei_description');
+            $table->text('bei_description');
             $table->string('bei_type');// PAYMENT_METHODS, ETC
 
         });
@@ -29,7 +29,7 @@ return new class extends Migration {
 
         Schema::create('bei_specific_parametrics', function (Blueprint $table) {
             $table->string('bei_code');
-            $table->string('bei_description');
+            $table->text('bei_description');
             $table->string('bei_activity_code')->nullable();
             $table->string('bei_type');
             $table->string('bei_account_id');

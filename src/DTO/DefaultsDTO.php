@@ -2,6 +2,7 @@
 
 namespace Emizor\SDK\DTO;
 
+use Emizor\SDK\Enums\ParametricType;
 use Emizor\SDK\Exceptions\EmizorApiDefaultsValidationException;
 use Emizor\SDK\Rules\CheckParametricRule;
 use Emizor\SDK\Rules\RuleCheckTypeDocuments;
@@ -15,6 +16,8 @@ final class DefaultsDTO
         private ?string $pos,
         private ?string $paymentMethod,
         private ?string $reasonRevocation,
+        private ?string $sinProductCode = null,
+        private ?string $activityCode = null,
     ) {
         $this->validate();
     }
@@ -27,14 +30,18 @@ final class DefaultsDTO
             'pos' => $this->pos,
             'payment_method' => $this->paymentMethod,
             'reason_revocation' => $this->reasonRevocation,
+            'sin_product_code' => $this->sinProductCode,
+            'activity_code' => $this->activityCode,
         ];
 
         $rules = [
             'type_document' => ['nullable', 'string', new RuleCheckTypeDocuments()],
             'branch' => ['nullable', 'integer','min:0','max:20'],
             'pos' => ['nullable', 'integer',"min:0","max:100"],
-            'payment_method' => ['nullable', 'string', new CheckParametricRule("payment_method")],
+            'payment_method' => ['nullable', 'string', new CheckParametricRule(ParametricType::METODOS_DE_PAGO)],
             'reason_revocation' => ['nullable', 'integer', "in:1,3"],
+            'sin_product_code' => ['nullable', 'string', 'regex:/^\d+$/', new CheckParametricRule(ParametricType::PRODUCTOS_SIN, false)],
+            'activity_code' => ['nullable', 'string', 'regex:/^\d+$/', new CheckParametricRule(ParametricType::ACTIVIDADES, false)],
         ];
 
         $messages = [
@@ -66,6 +73,8 @@ final class DefaultsDTO
             'pos' => $this->pos ?? null,
             'payment_method' => $this->paymentMethod ?? null,
             'reason_revocation' => $this->reasonRevocation ?? null,
+            'sin_product_code' => $this->sinProductCode ?? null,
+            'activity_code' => $this->activityCode ?? null,
         ];
     }
 }

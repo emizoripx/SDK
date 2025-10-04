@@ -17,10 +17,7 @@ class GetInvoiceDetailService implements GetInvoiceDetailContract
 
     public function getDetail(string $host, string $token, string $ticket): array
     {
-        return $this->emizorApiHttpService
-            ->setHost($host)
-            ->setToken($token)
-            ->getDetailInvoice($ticket);
+        return $this->emizorApiHttpService->getDetailInvoice($host, $token, $ticket);
 
     }
 }

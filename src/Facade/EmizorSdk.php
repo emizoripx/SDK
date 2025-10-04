@@ -12,9 +12,9 @@ class EmizorSdk extends Facade
     {
         return 'emizorsdk';
     }
-    public static function register($dto)
+    public static function register($callback)
     {
-        return app('emizorsdk')->register($dto);
+        return app('emizorsdk')->register($callback);
     }
 
     public static function withAccount(string $accountId)

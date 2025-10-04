@@ -24,7 +24,6 @@ class BeiAccount extends Model
         'bei_deadline_token',
         'bei_host',
         'bei_branches',
-        'bei_demo',
         'bei_defaults',
     ];
 
@@ -32,7 +31,6 @@ class BeiAccount extends Model
         'bei_enable' => 'boolean',
         'bei_verified_setup' => 'boolean',
         'bei_branches' => 'array',
-        'bei_demo' => 'boolean',
         'bei_defaults' => 'array',
     ];
 

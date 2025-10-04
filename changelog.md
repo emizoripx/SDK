@@ -19,6 +19,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Database Migrations**: Created migrations for accounts, parametrics, products, and offline invoice tracking
 - **Event System**: Added events for invoice status changes (accepted, rejected, in process, revocated, reverted)
 - **Jobs and Scheduling**: Implemented background jobs for offline invoice tracking
+
+### Changed
+- **Registration API**: Refactored to use fluent builder pattern instead of DTO/array parameters
+- **Parametric Sync**: Moved API connection logic to `EmizorApiService` for better separation of concerns
+- **Jobs Enhancement**: Improved `SyncGlobalParametrics`, `SyncSpecificParametrics`, and `EnsureToken` jobs with better error handling, logging, and documentation
+- **Automatic Post-Registration**: Account registration now automatically generates tokens and synchronizes both global and account-specific parametrics
+
+### Fixed
+- **EmissionResource**: Fixed hardcoded values, added null-safe access to client data, corrected discount calculation, and improved error handling
+- **EmissionDetailsResource**: Replaced hardcoded SIN codes with dynamic values from resource data, added null-safe access
+
+### Added
+- **InvoiceEmissionService**: Implemented product details merging with homologated products to automatically populate SIN codes before emission
 - **Validators and DTOs**: Added data validation and transfer objects for API interactions
 - **Contracts and Interfaces**: Defined contracts for dependency injection and interface segregation
 

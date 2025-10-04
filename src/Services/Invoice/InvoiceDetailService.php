@@ -42,10 +42,7 @@ class InvoiceDetailService
 
     private function sendRequestDetailInvoice(BeiInvoice $invoice):array
     {
-        return $this->emizorApiService
-            ->setHost($invoice->bei_account->bei_host)
-            ->setToken($invoice->bei_account->bei_token)
-            ->getDetailInvoice($invoice->bei_ticket);
+        return $this->emizorApiService->getDetailInvoice($invoice->bei_account->bei_host, $invoice->bei_account->bei_token, $invoice->bei_ticket);
     }
 
     private function handleSuccessfulResponse(BeiInvoice $invoice, array $response, string $id_log_response)

@@ -12,6 +12,7 @@ use Emizor\SDK\Contracts\Invoice\InvoiceManagerContract;
 use Emizor\SDK\Contracts\Invoice\InvoiceRevocationContract;
 use Emizor\SDK\Contracts\NitValidationContract;
 use Emizor\SDK\Contracts\ParametricContract;
+use Emizor\SDK\Contracts\RegisterContract;
 use Emizor\SDK\Contracts\TokenContract;
 use Emizor\SDK\Http\LaravelHttpClient;
 use Emizor\SDK\Jobs\BeiTrackingOfflineInvoicesCron;
@@ -29,6 +30,7 @@ use Emizor\SDK\Services\Invoice\InvoiceManagerService;
 use Emizor\SDK\Services\Invoice\InvoiceRevocationService;
 use Emizor\SDK\Services\NitValidationService;
 use Emizor\SDK\Services\ParametricService;
+use Emizor\SDK\Services\RegisterService;
 use Emizor\SDK\Services\TokenService;
 use Emizor\SDK\Validators\AccountValidator;
 use Emizor\SDK\Validators\HomologateProductsValidator;
@@ -102,6 +104,10 @@ class EmizorServiceProvider extends ServiceProvider
             return new InvoiceEmissionService($http);
         });
 
+        $this->app->bind(RegisterContract::class, function ($app) {
+            return new RegisterService($app->make(AccountRepository::class));
+        });
+
         $this->app->bind(EmizorApiContract::class, function ($app, $params) {
             return new EmizorApi(
                 $app->make(AccountRepository::class),
@@ -111,12 +117,13 @@ class EmizorServiceProvider extends ServiceProvider
                 $app->make(HomologateProductContract::class),
                 $app->make(InvoiceManagerContract::class),
                 $app->make(NitValidationContract::class),
+                $app->make(RegisterContract::class),
                 $params['accountId'] ?? null // 🔹 parámetro opcional
             );
         });
         $this->app->bind(ParametricContract::class, function($app) {
-            $http = $app->make(HttpClientInterface::class);
-            return new ParametricService($http,  $app->make(ParametricRepository::class));
+            $emizorApiHttp = $app->make(EmizorApiHttpContract::class);
+            return new ParametricService($emizorApiHttp,  $app->make(ParametricRepository::class));
         });
         $this->app->bind(InvoiceManagerContract::class, function($app) {
             return new InvoiceManagerService( $app->make(InvoiceRepository::class), $app->make(AccountRepository::class));

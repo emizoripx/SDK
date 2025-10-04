@@ -2,38 +2,25 @@
 
 namespace Emizor\SDK\Services;
 
-use Emizor\SDK\Contracts\HttpClientInterface;
+use Emizor\SDK\Contracts\EmizorApiHttpContract;
 use Emizor\SDK\Contracts\ParametricContract;
 use Emizor\SDK\Enums\ParametricType;
 use Emizor\SDK\Repositories\ParametricRepository;
 
 class ParametricService implements ParametricContract
 {
-    protected HttpClientInterface $http;
+    protected EmizorApiHttpContract $emizorApiHttp;
     protected ParametricRepository $repository;
 
-    public function __construct(HttpClientInterface $http, ParametricRepository $repository)
+    public function __construct(EmizorApiHttpContract $emizorApiHttp, ParametricRepository $repository)
     {
-        $this->http = $http;
+        $this->emizorApiHttp = $emizorApiHttp;
         $this->repository = $repository;
     }
 
-    public function setHost(string $host): static
+    public function sync(string $host, string $token, $type, string $accountId): void
     {
-        $this->http = $this->http->withBaseUri($host);
-        return $this;
-    }
-
-    public function setToken(string $token): static
-    {
-        $this->http = $this->http->withToken($token);
-        return $this;
-    }
-
-    public function sync( $type, string $accountId): void
-    {
-        $endpoint = "/api/v1/parametricas/" . $type;
-        $response = $this->http->get($endpoint);
+        $response = $this->emizorApiHttp->getParametrics($host, $token, $type);
 
         $this->repository->store($type, $response['data'], $accountId);
     }

@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->boolean('bei_verified_setup')->default(false);
             $table->string('bei_client_id')->unique();
             $table->string('bei_client_secret');
-            $table->string('bei_token')->nullable();
+            $table->text('bei_token')->nullable();
             $table->timestamp('bei_deadline_token')->nullable();
             $table->string('bei_host');
             $table->json('bei_branches')->nullable();

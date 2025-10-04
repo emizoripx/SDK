@@ -9,15 +9,15 @@ use Emizor\SDK\Exceptions\EmizorApiRegisterException;
 
 interface EmizorApiContract {
 
-     /** * Register a new account with credentials (returns internal account id).
-      * - Validates client_id/secret and host.
-      * - Obtains token and stores association with account.
-      * @param RegisterCredentialsDTO $credentials
-      * @return string $accountId
-      * @throws EmizorApiRegisterException
-      * @throws EmizorApiConnectionTimeoutException
-      */
-    public function register(RegisterCredentialsDTO $credentials): string;
+      /** * Register a new account with credentials (returns internal account id).
+       * - Validates client_id/secret and host.
+       * - Obtains token and stores association with account.
+       * @param Closure $callback
+       * @return string $accountId
+       * @throws EmizorApiRegisterException
+       * @throws EmizorApiConnectionTimeoutException
+       */
+     public function register(Closure $callback): string;
 
 
     /**
@@ -30,13 +30,15 @@ interface EmizorApiContract {
      * Sync parametrics by type, according to account will decide if specific or global
      * @param ParametricType $type
      */
-    public function syncParametrics(array $parametrics):void;
+     public function syncParametrics(array $parametrics):void;
 
-    /**
-     * Get parametrics by type, according to account will decide if specific or global
-     * @param string $type
-     */
-    public function getParametric($type):array;
+     public function sync(array $parametrics):void;
+
+     /**
+      * Get parametrics by type, according to account will decide if specific or global
+      * @param string $type
+      */
+     public function getParametric($type):array;
 
     /**
      * Define defaults for this account, using a closure-style builder.

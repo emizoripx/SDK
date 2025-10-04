@@ -58,15 +58,19 @@ After publishing, edit `config/emizor_sdk.php` to configure event listeners:
 use Emizor\SDK\Facade\EmizorSdk;
 
 // Register a new account
-$accountId = EmizorSdk::register([
-    'clientId' => env('EMIZOR_CLIENT_ID'),
-    'clientSecret' => env('EMIZOR_CLIENT_SECRET'),
-    'host' => env('EMIZOR_HOST'),
-    'demo' => env('EMIZOR_DEMO')
-]);
+$accountId = EmizorSdk::register(function ($builder) {
+    $builder->setClientId(env('EMIZOR_CLIENT_ID'))
+            ->setClientSecret(env('EMIZOR_CLIENT_SECRET'))
+            ->usePilotoEnvironment(); // or useProductionEnvironment()
+});
+
+// Note: Registration automatically triggers:
+// - Token generation and storage
+// - Synchronization of global parametrics
+// - Synchronization of account-specific parametrics
 
 // Get an instance for the account
-$api = app('emizorsdk', ['accountId' => $accountId]);
+$api = EmizorSdk::withAccount($accountId);
 ```
 
 ### Using Dependency Injection
@@ -102,13 +106,20 @@ class InvoiceController extends Controller
 
 ## Error Handling
 
-The SDK throws specific exceptions:
+The SDK throws specific exceptions that all extend `EmizorSdkException`:
 
-- `EmizorApiRegisterException`: Registration errors
-- `EmizorApiTokenException`: Token-related errors
-- `EmizorApiConnectionTimeoutException`: Connection timeouts
-- `ParametricSyncValidationException`: Invalid parametric data
-- `RegisterValidationException`: Invalid registration data
+- `EmizorApiRegisterException` (code 1004): Registration errors
+- `EmizorApiTokenException` (code 1005): Token-related errors
+- `EmizorApiConnectionTimeoutException` (code 1002): Connection timeouts
+- `EmizorApiAccountException` (code 1001): Account-related errors
+- `EmizorApiDefaultsValidationException` (code 1003): Defaults validation errors
+- `EmizorApiSyncException` (code 1008): Sync operation errors
+- `EmizorApiDefaultsException` (code 1009): Defaults operation errors
+- `EmizorApiAssociationException` (code 1010): Product association errors
+- `ParametricSyncValidationException` (code 1006): Invalid parametric data
+- `RegisterValidationException` (code 1007): Invalid registration data
+
+You can catch the base `EmizorSdkException` to handle all SDK errors generically.
 
 Always wrap API calls in try-catch blocks:
 

@@ -18,10 +18,7 @@ class NitValidationService implements NitValidationContract
     public function validate(string $host, string $token, string $nit ) : array
     {
 
-        return $this->emizorApiHttpService
-            ->setHost($host)
-            ->setToken($token)
-            ->checkNit($nit);
+        return $this->emizorApiHttpService->checkNit($host, $token, $nit);
 
     }
 }

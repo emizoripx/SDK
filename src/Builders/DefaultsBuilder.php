@@ -37,6 +37,18 @@ class DefaultsBuilder
         return $this;
     }
 
+    public function setSinProductCode(string $code=null): self
+    {
+        $this->data['sin_product_code'] = $code;
+        return $this;
+    }
+
+    public function setActivityCode(string $code=null): self
+    {
+        $this->data['activity_code'] = $code;
+        return $this;
+    }
+
     public function build(): DefaultsDTO
     {
         // Al crear el DTO, se activará la validación en su constructor.
@@ -46,6 +58,8 @@ class DefaultsBuilder
             $this->data['pos'] ?? null,
             $this->data['payment_method'] ?? null,
             $this->data['reason_revocation'] ?? null,
+            $this->data['sin_product_code'] ?? null,
+            $this->data['activity_code'] ?? null,
         );
     }
 }

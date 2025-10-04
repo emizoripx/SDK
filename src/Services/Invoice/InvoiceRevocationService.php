@@ -44,10 +44,7 @@ class InvoiceRevocationService implements InvoiceRevocationContract
 
     private function sendRequestRevocateInvoice(BeiInvoice $invoice, int $revocationReasonCode):array
     {
-        return $this->emizorApiService
-            ->setHost($invoice->bei_account->bei_host)
-            ->setToken($invoice->bei_account->bei_token)
-            ->revocateInvoice($invoice->bei_cuf,$revocationReasonCode );
+        return $this->emizorApiService->revocateInvoice($invoice->bei_account->bei_host, $invoice->bei_account->bei_token, $invoice->bei_cuf, $revocationReasonCode);
     }
 
     private function handleSuccessfulResponse(BeiInvoice $invoice, array $response, string $id_log_request)

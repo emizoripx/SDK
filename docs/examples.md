@@ -7,20 +7,22 @@ This document provides practical code examples for using the EMIZOR SDK.
 ### Register a New Account
 
 ```php
-use Emizor\SDK\DTO\RegisterDTO;
 use Emizor\SDK\Facade\EmizorSdk;
 
-// Using facade
-$accountId = EmizorSdk::register([
-    'clientId' => 'your_client_id',
-    'clientSecret' => 'your_client_secret',
-    'host' => 'PILOTO',
-    'demo' => true
-]);
+// Using facade with fluent builder
+$accountId = EmizorSdk::register(function ($builder) {
+    $builder->setClientId('your_client_id')
+            ->setClientSecret('your_client_secret')
+            ->usePilotoEnvironment(); // or useProductionEnvironment()
+});
 
-// Using DTO
-$dto = new RegisterDTO('client_id', 'client_secret', 'PILOTO', true);
-$accountId = $api->register($dto);
+// Note: Upon successful registration, the system automatically:
+// - Generates and stores an access token
+// - Synchronizes global parametrics (payment methods, document types, etc.)
+// - Synchronizes account-specific parametrics (activities, SIN products, legends)
+
+// Get API instance for account operations
+$api = EmizorSdk::withAccount($accountId);
 
 echo "Account registered with ID: $accountId";
 ```
@@ -71,15 +73,14 @@ print_r($types);
 ### Set Account Defaults
 
 ```php
-$api->setDefaults(function ($builder) {
-    $builder->setActivityCode('620100')
-            ->setBranch([
-                'codigo' => '001',
-                'descripcion' => 'Sucursal Principal'
-            ])
-            ->setCurrency('BOB')
-            ->setDocumentSector('1')
-            ->setEmissionType('1');
+$api->setDefaults(function ($data) {
+    $data->setTypeDocument('compra-venta')
+            ->setBranch('001')
+            ->setPos('001')
+            ->setPaymentMethod('efectivo')
+            ->setReasonRevocation('1')
+            ->setSinProductCode('61191')  // Must exist in synced productos-sin parametrics
+            ->setActivityCode('461091');  // Must exist in synced actividades parametrics
 });
 
 echo "Defaults configured";
@@ -124,46 +125,40 @@ foreach ($homologated as $product) {
 ### Issue an Invoice
 
 ```php
+use Emizor\SDK\DTO\ClientDTO;
+
+$accountId = "your-account-id"; // From registration
+$api = EmizorSdk::withAccount($accountId);
+
 $ticket = 'INV-' . time();
 
-$api->issueInvoice(function ($builder) use ($ticket) {
-    $builder->setClient([
-                'nombreRazonSocial' => 'Cliente Ejemplo S.A.',
-                'codigoTipoDocumentoIdentidad' => '1',
-                'numeroDocumento' => '123456789',
-                'complemento' => '',
-                'codigoCliente' => 'CLI001'
-            ])
-            ->setInvoiceDetails([
-                'numeroFactura' => 1,
-                'codigoSucursal' => '001',
-                'codigoPuntoVenta' => '001',
-                'fechaEmision' => now()->format('Y-m-d\TH:i:s.v'),
-                'codigoTipoDocumentoIdentidad' => '1',
-                'numeroDocumento' => '123456789',
-                'complemento' => '',
-                'codigoCliente' => 'CLI001',
-                'codigoMetodoPago' => '1',
-                'numeroTarjeta' => null,
-                'codigoMoneda' => 'BOB',
-                'tipoCambio' => 1,
-                'montoTotal' => 100.00,
-                'montoTotalMoneda' => 100.00,
-                'usuario' => 'admin',
-                'codigoDocumentoSector' => '1'
-            ])
-            ->addItem([
-                'codigoProducto' => 'PROD001',
-                'descripcion' => 'Producto de ejemplo',
-                'codigoProductoSin' => '83111',
-                'codigoActividad' => '620100',
-                'codigoUnidadMedida' => '1',
-                'cantidad' => 1,
-                'precioUnitario' => 100.00,
-                'montoDescuento' => 0,
-                'subtotal' => 100.00
-            ])
-            ->setPaymentMethod('efectivo');
+$client = new ClientDTO(
+    'CLI001',
+    '123456789',
+    'Cliente Ejemplo S.A.',
+    '',
+    '1',
+    'cliente@example.com'
+);
+
+$details = [
+    [
+        'product_code' => 'PROD001',
+        'description' => 'Producto de ejemplo',
+        'quantity' => 1,
+        'unit_price' => 100.00,
+        'unit_code' => '1',
+    ]
+];
+
+$api->issueInvoice(function ($builder) use ($client, $details) {
+    $builder->setClient($client)
+            ->setDetails($details)
+            ->setTypeDocument('1')
+            ->setBranch(1)
+            ->setPos(1)
+            ->setPaymentMethod('1')
+            ->setAmount(100.00);
 }, $ticket);
 
 echo "Invoice issued with ticket: $ticket";
@@ -182,10 +177,15 @@ echo "Invoice revocated";
 
 ```php
 $result = $api->validateNit('123456789');
-if ($result['valid']) {
-    echo "NIT is valid for: {$result['razonSocial']}";
+if ($result['status'] === 'success' && isset($result['data'])) {
+    $data = $result['data'];
+    if ($data['codigo'] == 0) {
+        echo "NIT is valid for: {$data['descripcion']}";
+    } else {
+        echo "NIT validation failed: {$data['descripcion']}";
+    }
 } else {
-    echo "NIT is invalid";
+    echo "NIT validation error";
 }
 ```
 
@@ -212,14 +212,12 @@ class InvoiceController extends Controller
     public function registerAccount(Request $request)
     {
         try {
-            $dto = new RegisterDTO(
-                $request->client_id,
-                $request->client_secret,
-                $request->host,
-                $request->demo
-            );
-
-            $accountId = $this->api->register($dto);
+            // Registration automatically handles token generation and parametric synchronization
+            $accountId = $this->api->register(function ($builder) use ($request) {
+                $builder->setClientId($request->client_id)
+                        ->setClientSecret($request->client_secret)
+                        ->usePilotoEnvironment(); // or useProductionEnvironment()
+            });
 
             return response()->json(['account_id' => $accountId]);
         } catch (\Exception $e) {
@@ -231,15 +229,16 @@ class InvoiceController extends Controller
     {
         try {
             // Get account-specific API instance
-            $accountApi = app('emizorsdk', ['accountId' => $accountId]);
+            $accountApi = EmizorSdk::withAccount($accountId);
 
             // Sync parametrics
-            $accountApi->syncParametrics(['actividades', 'productos', 'metodos-de-pago']);
+            $accountApi->sync(['actividades', 'productos', 'metodos-de-pago']);
 
             // Set defaults
-            $accountApi->setDefaults(function ($builder) {
-                $builder->setActivityCode('620100')
-                        ->setBranch(['codigo' => '001', 'descripcion' => 'Principal']);
+            $accountApi->setDefaults(function ($data) {
+                $data->setTypeDocument('compra-venta')
+                        ->setBranch('001')
+                        ->setPos('001');
             });
 
             return response()->json(['message' => 'Account setup complete']);
@@ -251,19 +250,27 @@ class InvoiceController extends Controller
     public function createInvoice(Request $request, $accountId)
     {
         try {
-            $accountApi = app('emizorsdk', ['accountId' => $accountId]);
+            $accountApi = EmizorSdk::withAccount($accountId);
 
             $ticket = 'INV-' . time();
 
-            $accountApi->issueInvoice(function ($builder) use ($request) {
-                $builder->setClient($request->client)
-                        ->setInvoiceDetails($request->invoice_details);
+            $client = new ClientDTO(
+                $request->client['client_code'],
+                $request->client['client_document_number'],
+                $request->client['client_business_name'],
+                $request->client['client_complement'],
+                $request->client['client_document_number_type'],
+                $request->client['client_email'] ?? null
+            );
 
-                foreach ($request->items as $item) {
-                    $builder->addItem($item);
-                }
-
-                $builder->setPaymentMethod($request->payment_method);
+            $accountApi->issueInvoice(function ($builder) use ($client, $request) {
+                $builder->setClient($client)
+                        ->setDetails($request->items)
+                        ->setTypeDocument($request->type_document ?? '1')
+                        ->setBranch($request->branch ?? 1)
+                        ->setPos($request->pos ?? 1)
+                        ->setPaymentMethod($request->payment_method)
+                        ->setAmount($request->amount);
             }, $ticket);
 
             return response()->json(['ticket' => $ticket]);
@@ -308,9 +315,12 @@ use Emizor\SDK\Exceptions\EmizorApiRegisterException;
 it('registers account successfully', function () {
     $api = app(EmizorApiContract::class);
 
-    $dto = new RegisterDTO('test_id', 'test_secret', 'PILOTO', true);
-
-    $accountId = $api->register($dto);
+    // Registration triggers automatic token and parametrics sync
+    $accountId = $api->register(function ($builder) {
+        $builder->setClientId('test_id')
+                ->setClientSecret('test_secret')
+                ->usePilotoEnvironment();
+    });
 
     expect($accountId)->toBeString();
     expect($accountId)->not->toBeEmpty();
@@ -319,9 +329,11 @@ it('registers account successfully', function () {
 it('throws exception on invalid registration', function () {
     $api = app(EmizorApiContract::class);
 
-    $dto = new RegisterDTO('', '', 'PILOTO', true);
-
-    expect(fn() => $api->register($dto))->toThrow(EmizorApiRegisterException::class);
+    expect(fn() => $api->register(function ($builder) {
+        $builder->setClientId('')
+                ->setClientSecret('')
+                ->usePilotoEnvironment();
+    }))->toThrow(EmizorApiRegisterException::class);
 });
 ```</content>
 </xai:function_call"> 

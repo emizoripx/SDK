@@ -18,9 +18,9 @@ composer require emizor/sdk
 
 ## Test using Docker
 ```sh
-    docker-compose up -d 
-    docker-compose exec app composer install
-    docker-compose exec app composer test
+    docker-compose up -d
+    docker-compose exec php composer install
+    docker-compose exec php composer test
   ```
 
 ## Usage
@@ -32,16 +32,20 @@ After installation, you can use the SDK via facade or dependency injection.
 ```php
 use Emizor\SDK\Facade\EmizorSdk;
 
-// Register account
-$accountId = EmizorSdk::register([
-    'clientId' => 'your_client_id',
-    'clientSecret' => 'your_client_secret',
-    'host' => 'PILOTO',
-    'demo' => true
-]);
+// Register account with fluent builder
+$accountId = EmizorSdk::register(function ($builder) {
+    $builder->setClientId('your_client_id')
+            ->setClientSecret('your_client_secret')
+            ->usePilotoEnvironment(); // or useProductionEnvironment()
+});
+
+// Note: Upon registration, the system automatically:
+// - Generates an access token
+// - Synchronizes global parametrics (payment methods, document types, etc.)
+// - Synchronizes account-specific parametrics (activities, SIN products, etc.)
 
 // Then use with account
-$api = app('emizorsdk', ['accountId' => $accountId]);
+$api = EmizorSdk::withAccount($accountId);
 $api->syncParametrics(['actividades', 'productos']);
 ```
 
@@ -60,9 +64,23 @@ public function __construct(EmizorApiContract $api) {
 ### Register Account
 
 ```php
-use Emizor\SDK\DTO\RegisterDTO;
+// Using fluent builder pattern
+$accountId = $api->register(function ($builder) {
+    $builder->setClientId('your_client_id')
+            ->setClientSecret('your_client_secret')
+            ->usePilotoEnvironment();
+});
 
-$accountId = $api->register(new RegisterDTO('client_id', 'client_secret', 'PILOTO', true));
+// Automatic post-registration process:
+// 1. Token generation and storage
+// 2. Global parametrics synchronization
+// 3. Account-specific parametrics synchronization
+```
+
+### List parametrics available
+
+```php
+return EmizorSdk::PARAMETRICS_TYPES()
 ```
 
 ### Sync Parametrics
@@ -84,10 +102,30 @@ $api->setDefaults(function ($builder) {
 ### Issue Invoice
 
 ```php
-$api->issueInvoice(function ($builder) {
-    $builder->setClient(['name' => 'Client Name', 'nit' => '123456'])
-            ->addItem(['code' => '001', 'description' => 'Product', 'quantity' => 1, 'price' => 100])
-            ->setPaymentMethod('efectivo');
+use Emizor\SDK\DTO\ClientDTO;
+
+$client = new ClientDTO(
+    'CLI001',
+    '123456789',
+    'Client Name',
+    '',
+    '1',
+    'client@example.com'
+);
+
+$api->issueInvoice(function ($builder) use ($client) {
+    $builder->setClient($client)
+            ->setDetails([
+                [
+                    'product_code' => '001',
+                    'description' => 'Product',
+                    'quantity' => 1,
+                    'unit_price' => 100,
+                    'unit_code' => '1'
+                ]
+            ])
+            ->setPaymentMethod('efectivo')
+            ->setAmount(100);
 }, 'ticket-123');
 ```
 
@@ -95,6 +133,14 @@ $api->issueInvoice(function ($builder) {
 
 ```php
 $result = $api->validateNit('123456');
+if ($result['status'] === 'success' && isset($result['data'])) {
+    $data = $result['data'];
+    if ($data['codigo'] == 0) {
+        echo "NIT is valid: {$data['descripcion']}";
+    } else {
+        echo "NIT validation failed: {$data['descripcion']}";
+    }
+}
 ```
 
 ### Revocate Invoice
@@ -125,7 +171,7 @@ Configure event listeners in `config/emizor_sdk.php`:
 
 ### Main Methods
 
-- `register(RegisterDTO $dto): string` - Register a new account
+- `register(Closure $callback): string` - Register a new account using fluent builder
 - `syncParametrics(array $parametrics): void` - Sync parametric data
 - `getParametric(string $type): array` - Get synced parametric data
 - `setDefaults(Closure $callback): self` - Set default configurations
@@ -151,12 +197,15 @@ The SDK fires the following events:
 ## Features
 
 ### Account Register
-- Register EMIZOR SDK account to get ACCOUNT_ID
-- Obtain access token for API calls
+- Register EMIZOR SDK account to get ACCOUNT_ID using fluent builder pattern
+- Automatic token generation and storage upon registration
+- Automatic synchronization of global and account-specific parametrics
 
 ### Parametric Sync
 - Sync fiscal parametrics (activities, products, payment methods, etc.)
 - Store locally for offline use
+- Global parametrics synced automatically on account creation
+- Account-specific parametrics synced automatically on account creation
 
 ### Invoice Management
 - Issue electronic invoices

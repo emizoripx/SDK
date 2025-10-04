@@ -2,6 +2,9 @@
 
 namespace Emizor\SDK\Observers;
 
+use Emizor\SDK\Jobs\EnsureToken;
+use Emizor\SDK\Jobs\SyncGlobalParametrics;
+use Emizor\SDK\Jobs\SyncSpecificParametrics;
 use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Services\TokenManager;
 
@@ -18,6 +21,9 @@ class BeiAccountObserver
      */
     public function created(BeiAccount $account): void
     {
-        $this->tokenManager->generateAndSaveToken($account);
+        EnsureToken::dispatch($account);
+        SyncSpecificParametrics::dispatch($account);
+        SyncGlobalParametrics::dispatch($account);
+
     }
 }

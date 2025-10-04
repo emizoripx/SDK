@@ -16,53 +16,66 @@ class EmizorApiService implements EmizorApiHttpContract
         $this->http = $http;
     }
 
-    public function setHost(string $host): static
+    private function resolveHost(string $host): string
     {
-        $this->http = $this->http->withBaseUri($host);
-        return $this;
+        return match ($host) {
+            'PILOTO' => 'https://sinfel.emizor.com',
+            'PRODUCTION' => 'https://fel.emizor.com',
+            default => $host, // Allow custom URLs if needed
+        };
     }
 
-    public function setToken(string $token): static
+    public function generateToken(string $host, string $clientId, string $clientSecret): array
     {
-        $this->http = $this->http->withToken($token);
-        return $this;
-    }
+        $configuredHttp = $this->http->withBaseUri($this->resolveHost($host));
 
-    public function generateToken( string $clientId, string $clientSecret ) : array
-    {
-
-        return  $this->http->post('/oauth/token', [
+        return $configuredHttp->post('/oauth/token', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
             'grant_type' => 'client_credentials',
         ]);
-
     }
 
-    public function checkNit($nit):array
+    public function checkNit(string $host, string $token, $nit): array
     {
-        return $this->http->get("/api/v1/sucursales/0/validate-nit/$nit");
+        $configuredHttp = $this->http->withBaseUri($this->resolveHost($host))->withToken($token);
+
+        return $configuredHttp->get("/api/v1/sucursales/0/validate-nit/$nit");
     }
 
-    public function sendInvoice(array $data):array
+    public function sendInvoice(string $host, string $token, array $data): array
     {
+        $configuredHttp = $this->http->withBaseUri($this->resolveHost($host))->withToken($token);
+
         $endpoint = "/api/v1/sucursales/" . $data['codigoSucursal'] . "/facturas/" . InvoiceType::getName($data["codigoDocumentoSector"]);
         info("send to " . $endpoint);
-        return $this->http->post( $endpoint , $data);
+        return $configuredHttp->post($endpoint, $data);
     }
 
-    public function getDetailInvoice(string $ticket):array
+    public function getDetailInvoice(string $host, string $token, string $ticket): array
     {
+        $configuredHttp = $this->http->withBaseUri($this->resolveHost($host))->withToken($token);
+
         $endpoint = "/api/v1/facturas/$ticket";
         info("send to " . $endpoint);
-        return $this->http->get( $endpoint, ["unique_code" => 'true']);
+        return $configuredHttp->get($endpoint, ["unique_code" => 'true']);
     }
 
-    public function revocateInvoice(string $ticket, int $revocationReasonCode):array
+    public function revocateInvoice(string $host, string $token, string $ticket, int $revocationReasonCode): array
     {
+        $configuredHttp = $this->http->withBaseUri($this->resolveHost($host))->withToken($token);
+
         $endpoint = "/api/v1/facturas/$ticket/anular";
         info("send to " . $endpoint);
-        return $this->http->delete( $endpoint ,array("codigoMotivoAnulacion" => $revocationReasonCode));
+        return $configuredHttp->delete($endpoint, ["codigoMotivoAnulacion" => $revocationReasonCode]);
+    }
+
+    public function getParametrics(string $host, string $token, string $type): array
+    {
+        $configuredHttp = $this->http->withBaseUri($this->resolveHost($host))->withToken($token);
+
+        $endpoint = "/api/v1/parametricas/" . $type;
+        return $configuredHttp->get($endpoint);
     }
 
 }

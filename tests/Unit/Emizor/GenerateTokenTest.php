@@ -8,15 +8,14 @@ use Emizor\SDK\Exceptions\EmizorApiTokenException;
 it('throws exception if connection timeout', function () {
     $fakeHttp = new class implements EmizorApiHttpContract {
         public function __construct($http = null) {}
-        public function setHost(string $host): static { return $this; }
-        public function setToken(string $token): static { return $this; }
-        public function generateToken(string $clientId, string $clientSecret): array {
+        public function generateToken(string $host, string $clientId, string $clientSecret): array {
             throw new EmizorApiConnectionTimeoutException("Connection timed out");
         }
-        public function checkNit($nit): array { return []; }
-        public function sendInvoice(array $data): array { return []; }
-        public function getDetailInvoice(string $ticket): array { return []; }
-        public function revocateInvoice(string $ticket, int $revocationReasonCode): array { return []; }
+        public function checkNit(string $host, string $token, $nit): array { return []; }
+        public function sendInvoice(string $host, string $token, array $data): array { return []; }
+        public function getDetailInvoice(string $host, string $token, string $ticket): array { return []; }
+        public function revocateInvoice(string $host, string $token, string $ticket, int $revocationReasonCode): array { return []; }
+        public function getParametrics(string $host, string $token, string $type): array { return []; }
     };
 
     $service = new TokenService($fakeHttp);
@@ -28,15 +27,14 @@ it('throws exception if connection timeout', function () {
 it('throws exception if token invalid', function () {
     $fakeHttp = new class implements EmizorApiHttpContract {
         public function __construct($http = null) {}
-        public function setHost(string $host): static { return $this; }
-        public function setToken(string $token): static { return $this; }
-        public function generateToken(string $clientId, string $clientSecret): array {
+        public function generateToken(string $host, string $clientId, string $clientSecret): array {
             throw new EmizorApiTokenException("Invalid token");
         }
-        public function checkNit($nit): array { return []; }
-        public function sendInvoice(array $data): array { return []; }
-        public function getDetailInvoice(string $ticket): array { return []; }
-        public function revocateInvoice(string $ticket, int $revocationReasonCode): array { return []; }
+        public function checkNit(string $host, string $token, $nit): array { return []; }
+        public function sendInvoice(string $host, string $token, array $data): array { return []; }
+        public function getDetailInvoice(string $host, string $token, string $ticket): array { return []; }
+        public function revocateInvoice(string $host, string $token, string $ticket, int $revocationReasonCode): array { return []; }
+        public function getParametrics(string $host, string $token, string $type): array { return []; }
     };
 
     $service = new TokenService($fakeHttp);
@@ -47,19 +45,18 @@ it('throws exception if token invalid', function () {
 it('generates token successfully', function () {
     $fakeHttp = new class implements EmizorApiHttpContract {
         public function __construct($http = null) {}
-        public function setHost(string $host): static { return $this; }
-        public function setToken(string $token): static { return $this; }
-        public function generateToken(string $clientId, string $clientSecret): array {
+        public function generateToken(string $host, string $clientId, string $clientSecret): array {
             return [
                 'access_token' => 'generated-token',
                 'expires_in' => 3600,
                 'token_type' => 'Bearer'
             ];
         }
-        public function checkNit($nit): array { return []; }
-        public function sendInvoice(array $data): array { return []; }
-        public function getDetailInvoice(string $ticket): array { return []; }
-        public function revocateInvoice(string $ticket, int $revocationReasonCode): array { return []; }
+        public function checkNit(string $host, string $token, $nit): array { return []; }
+        public function sendInvoice(string $host, string $token, array $data): array { return []; }
+        public function getDetailInvoice(string $host, string $token, string $ticket): array { return []; }
+        public function revocateInvoice(string $host, string $token, string $ticket, int $revocationReasonCode): array { return []; }
+        public function getParametrics(string $host, string $token, string $type): array { return []; }
     };
 
     $service = new TokenService($fakeHttp);

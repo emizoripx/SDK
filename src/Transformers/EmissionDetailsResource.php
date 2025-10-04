@@ -14,19 +14,19 @@ class EmissionDetailsResource extends JsonResource
      */
     public function toArray($request)
     {
+        $subtotal = round((float)$this->resource["unit_price"] * (float)$this->resource["quantity"], 2);
 
-        $subtotal = round((float)$this->resource["unit_price"] * (float)$this->resource["quantity"],2);
         return [
             "codigoProducto" => $this->resource["product_code"],
 
-            "codigoProductoSin" => "61191",//$this->resource["bei_sin_product_code"],
-            "codigoActividadSin" => "461091",//$this->resource["bei_activity_code"],
+            "codigoProductoSin" => $this->resource["bei_sin_product_code"],
+            "codigoActividadSin" => $this->resource["bei_activity_code"],
 
             "descripcion" => $this->resource["description"],
             "cantidad" => $this->resource["quantity"],
             "precioUnitario" => $this->resource["unit_price"],
             "subTotal" => $subtotal,
-            "montoDescuento" => $this->resource["discount"]??0,
+            "montoDescuento" => $this->resource["discount"] ?? 0,
             "unidadMedida" => $this->resource["unit_code"],
         ];
     }
