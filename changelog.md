@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [UNRELEASED] - 2025-10-09
 
 ### Added
+- **Laravel 12 Support**: Added compatibility with Laravel 12.x while maintaining Laravel 11.x support
+- **Updated Dependencies**: Updated illuminate packages to support both ^11.0 and ^12.0 versions
+- **Testbench Compatibility**: Updated orchestra/testbench to ^10.0 for Laravel 12 testing support
+
+### Changed
+- **PHP Requirement**: Updated minimum PHP version to >=8.2 to match Laravel 12 requirements
+- **Version Constraints**: Updated composer.json with flexible version ranges for cross-Laravel compatibility
+
+## [UNRELEASED] - 2025-10-09
+
+### Added
 - **Owner-Based Pattern**: Implemented owner-based pattern with `HasEmizorCredentials` trait for polymorphic credential association to models (Company, User)
 - **Polymorphic Relations**: Added `morphTo` relation in `BeiAccount` and `owner_type`/`owner_id` fields for polymorphic support
 - **EmizorManager Service**: New primary service `EmizorManager` for dynamic operations, replacing legacy logic

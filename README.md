@@ -2,7 +2,7 @@
 Issue invoices according to Bolivian fiscal regulation using EMIZOR services.
 
 ## Requirements
-- Laravel ^11
+- Laravel ^11 or ^12
 - PHP ^8.2
 - An account in [EMIZOR](https://emizor.com), with:
     - CLIENT_ID
