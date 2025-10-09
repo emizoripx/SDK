@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED] - 2025-10-09
+
+### Added
+- **Owner-Based Pattern**: Implemented owner-based pattern with `HasEmizorCredentials` trait for polymorphic credential association to models (Company, User)
+- **Polymorphic Relations**: Added `morphTo` relation in `BeiAccount` and `owner_type`/`owner_id` fields for polymorphic support
+- **EmizorManager Service**: New primary service `EmizorManager` for dynamic operations, replacing legacy logic
+- **Credential Encryption**: Automatic encryption of `bei_client_secret` using Laravel's `encrypted` casts
+- **Dynamic Manager Access**: `for($owner)` method in facade for dynamic manager access per owner
+- **Homologation Methods**: Integrated `homologateProduct()` and `homologateProductList()` in `EmizorManager`
+- **Defaults Methods**: Integrated `setDefaults()` and `getDefaults()` in `EmizorManager`
+
+### Changed
+- **Registration Process**: Updated to use `updateOrCreate` with `owner_type`/`owner_id`, enabling upsert per owner
+- **Service Architecture**: Migrated from `EmizorApi` to `EmizorManager` using `EmizorApiService` directly for better efficiency
+- **Facade Methods**: `register()` and `for($owner)` now use separate bindings for clarity
+- **Database Schema**: `bei_client_secret` changed to `text` for encryption support; added composite index on `owner_type`/`owner_id`
+
+### Removed
+- **EmizorApi Class**: Removed `EmizorApi` class and `EmizorApiContract` to align with owner-based pattern
+- **withAccount() Method**: Removed `withAccount()` from facade to avoid exposing `accountId`
+- **Legacy Bindings**: Removed `EmizorApiContract` bindings in `ServiceProvider`
+
+### Fixed
+- **Test Compatibility**: Updated tests to use owner-based pattern and `for()` facade method
+- **Migration Issues**: Fixed `bei_client_secret` field length for encrypted data
+
+### Security
+- **Credential Encryption**: Implemented encryption for sensitive credentials to enhance security
+
 ## [UNRELEASED] - 2025-09-29
 
 ### Added

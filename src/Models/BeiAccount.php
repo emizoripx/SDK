@@ -25,6 +25,8 @@ class BeiAccount extends Model
         'bei_host',
         'bei_branches',
         'bei_defaults',
+        'owner_id',
+        'owner_type',
     ];
 
     protected $casts = [
@@ -32,6 +34,7 @@ class BeiAccount extends Model
         'bei_verified_setup' => 'boolean',
         'bei_branches' => 'array',
         'bei_defaults' => 'array',
+        'bei_client_secret' => 'encrypted',
     ];
 
     protected static function booted()
@@ -45,6 +48,11 @@ class BeiAccount extends Model
     protected static function newFactory(): \Illuminate\Database\Eloquent\Factories\Factory
     {
         return \Emizor\SDK\Database\Factories\BeiAccountFactory::new();
+    }
+
+    public function owner()
+    {
+        return $this->morphTo();
     }
 
 }

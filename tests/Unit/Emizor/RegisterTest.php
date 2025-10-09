@@ -2,8 +2,7 @@
 
 use Emizor\SDK\Contracts\TokenContract;
 use Emizor\SDK\DTO\RegisterDTO;
-use Emizor\SDK\EmizorApi;
-use Emizor\SDK\Exceptions\EmizorApiRegisterException;
+use Emizor\SDK\Facade\EmizorSdk;
 use Emizor\SDK\Exceptions\RegisterValidationException;
 use Emizor\SDK\Models\BeiAccount;
 use Mockery\MockInterface;
@@ -20,14 +19,12 @@ beforeEach(function () {
         $mock->shouldReceive("setHost")->zeroOrMoreTimes();
     });
 
-    // Resolve EmizorApi through the container
-    // so all dependencies are injected correctly.
-    $this->api = app(EmizorApi::class);
+    // Use facade for testing
 });
 
 it('registers a new account successfully', function () {
     // Arrange & Act
-    $accountId = $this->api->register(function ($builder) {
+    $accountId = EmizorSdk::register(function ($builder) {
         $builder->setClientId('12345678')
                 ->setClientSecret('SECRET_001')
                 ->usePilotoEnvironment();
@@ -50,10 +47,10 @@ it('throws exception if client_id already exists', function () {
     ]);
 
     // Act & Assert: expect the correct exception
-    $this->api->register(function ($builder) {
+    EmizorSdk::register(function ($builder) {
         $builder->setClientId('12345678')
                 ->setClientSecret('SECRET_002')
                 ->usePilotoEnvironment();
     });
-})->throws(\Emizor\SDK\Exceptions\EmizorApiRegisterException::class);
+})->throws(RegisterValidationException::class);
 

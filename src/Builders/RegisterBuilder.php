@@ -10,6 +10,8 @@ class RegisterBuilder
     protected string $clientId;
     protected string $clientSecret;
     protected EnvironmentType $environment;
+    protected ?string $ownerId = null;
+    protected ?string $ownerType = null;
 
     public function setClientId(string $clientId): self
     {
@@ -35,12 +37,26 @@ class RegisterBuilder
         return $this;
     }
 
+    public function setOwnerId(?string $ownerId): self
+    {
+        $this->ownerId = $ownerId;
+        return $this;
+    }
+
+    public function setOwnerType(?string $ownerType): self
+    {
+        $this->ownerType = $ownerType;
+        return $this;
+    }
+
     public function build(): RegisterDTO
     {
         return new RegisterDTO(
             $this->environment->value,
             $this->clientId,
-            $this->clientSecret
+            $this->clientSecret,
+            $this->ownerId,
+            $this->ownerType
         );
     }
 }

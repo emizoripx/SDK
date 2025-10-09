@@ -2,17 +2,44 @@
 
 This document provides practical code examples for using the EMIZOR SDK.
 
+## Owner Model Setup
+
+To use the owner-based pattern, add the trait to your models (e.g., Company, User):
+
+```php
+<?php
+
+namespace App\Models;
+
+use Emizor\SDK\Traits\HasEmizorCredentials;
+use Illuminate\Database\Eloquent\Model;
+
+class Company extends Model
+{
+    use HasEmizorCredentials;
+
+    // ... your model code
+}
+```
+
+This allows the SDK to manage credentials per owner without you storing account IDs.
+
 ## Account Registration
 
-### Register a New Account
+### Register a New Account Tied to an Owner
 
 ```php
 use Emizor\SDK\Facade\EmizorSdk;
+use App\Models\Company; // Your owner model
 
-// Using facade with fluent builder
-$accountId = EmizorSdk::register(function ($builder) {
+$company = Company::find(1);
+
+// Using facade with fluent builder, tied to the owner
+$accountId = EmizorSdk::register(function ($builder) use ($company) {
     $builder->setClientId('your_client_id')
             ->setClientSecret('your_client_secret')
+            ->setOwnerType(get_class($company))
+            ->setOwnerId($company->id)
             ->usePilotoEnvironment(); // or useProductionEnvironment()
 });
 
@@ -21,8 +48,8 @@ $accountId = EmizorSdk::register(function ($builder) {
 // - Synchronizes global parametrics (payment methods, document types, etc.)
 // - Synchronizes account-specific parametrics (activities, SIN products, legends)
 
-// Get API instance for account operations
-$api = EmizorSdk::withAccount($accountId);
+// Get API instance for account operations using the owner
+$api = EmizorSdk::for($company);
 
 echo "Account registered with ID: $accountId";
 ```
@@ -126,9 +153,10 @@ foreach ($homologated as $product) {
 
 ```php
 use Emizor\SDK\DTO\ClientDTO;
+use App\Models\Company;
 
-$accountId = "your-account-id"; // From registration
-$api = EmizorSdk::withAccount($accountId);
+$company = Company::find(1); // Your owner with credentials
+$api = EmizorSdk::for($company);
 
 $ticket = 'INV-' . time();
 
@@ -225,11 +253,12 @@ class InvoiceController extends Controller
         }
     }
 
-    public function setupAccount(Request $request, $accountId)
+    public function setupAccount(Request $request, $companyId)
     {
         try {
+            $company = Company::find($companyId);
             // Get account-specific API instance
-            $accountApi = EmizorSdk::withAccount($accountId);
+            $accountApi = EmizorSdk::for($company);
 
             // Sync parametrics
             $accountApi->sync(['actividades', 'productos', 'metodos-de-pago']);
@@ -247,10 +276,11 @@ class InvoiceController extends Controller
         }
     }
 
-    public function createInvoice(Request $request, $accountId)
+    public function createInvoice(Request $request, $companyId)
     {
         try {
-            $accountApi = EmizorSdk::withAccount($accountId);
+            $company = Company::find($companyId);
+            $accountApi = EmizorSdk::for($company);
 
             $ticket = 'INV-' . time();
 

@@ -37,9 +37,15 @@ EMIZOR_DEMO=true    # set to false for production
 
 ### Config File
 
-After publishing, edit `config/emizor_sdk.php` to configure event listeners:
+After publishing, edit `config/emizor_sdk.php` to configure owners and event listeners:
 
 ```php
+'owners' => [
+    'company' => App\Models\Company::class,
+    'user' => App\Models\User::class,
+    // Add your owner models here
+],
+
 'listeners' => [
     \Emizor\SDK\Events\InvoiceAccepted::class => [
         \App\Listeners\HandleInvoiceAccepted::class,
@@ -57,10 +63,12 @@ After publishing, edit `config/emizor_sdk.php` to configure event listeners:
 ```php
 use Emizor\SDK\Facade\EmizorSdk;
 
-// Register a new account
-$accountId = EmizorSdk::register(function ($builder) {
+// Register a new account tied to an owner (e.g., Company model)
+$accountId = EmizorSdk::register(function ($builder) use ($company) {
     $builder->setClientId(env('EMIZOR_CLIENT_ID'))
             ->setClientSecret(env('EMIZOR_CLIENT_SECRET'))
+            ->setOwnerType(get_class($company))
+            ->setOwnerId($company->id)
             ->usePilotoEnvironment(); // or useProductionEnvironment()
 });
 
@@ -69,8 +77,8 @@ $accountId = EmizorSdk::register(function ($builder) {
 // - Synchronization of global parametrics
 // - Synchronization of account-specific parametrics
 
-// Get an instance for the account
-$api = EmizorSdk::withAccount($accountId);
+// Use the dynamic manager for operations
+$api = EmizorSdk::for($company);
 ```
 
 ### Using Dependency Injection

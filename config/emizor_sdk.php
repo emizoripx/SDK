@@ -2,6 +2,15 @@
 
 return [
     /**
+     * Allowed owner types for polymorphic relations
+     * Add your models here, e.g., 'company' => App\Models\Company::class
+     */
+    'owners' => [
+        // 'company' => App\Models\Company::class,
+        // 'user' => App\Models\User::class,
+    ],
+
+    /**
      * Register your listeners to event services
      *
      */

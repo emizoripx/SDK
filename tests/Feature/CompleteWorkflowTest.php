@@ -6,6 +6,7 @@ use Emizor\SDK\DTO\ClientDTO;
 use Emizor\SDK\DTO\RegisterDTO;
 use Emizor\SDK\Facade\EmizorSdk;
 use Emizor\SDK\Models\BeiAccount;
+use Tests\Models\Company;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lcobucci\JWT\Encoding\ChainedFormatter;
 use Lcobucci\JWT\Encoding\JoseEncoder;
@@ -68,10 +69,13 @@ beforeEach(function () {
 });
 
 it('completes full workflow from registration to invoice revocation', function () {
-    // 1. Register Account
-    $accountId = EmizorSdk::register(function ($builder) {
+    // 1. Create Owner and Register Account
+    $company = Company::create(['name' => 'Test Company']);
+    $accountId = EmizorSdk::register(function ($builder) use ($company) {
         $builder->setClientId('300455')
                 ->setClientSecret('eaahV12lddL5eR6vA0fdFxQGNN5p7V3z40Oi7YbJ')
+                ->setOwnerType(get_class($company))
+                ->setOwnerId($company->id)
                 ->usePilotoEnvironment();
     });
 
@@ -80,11 +84,13 @@ it('completes full workflow from registration to invoice revocation', function (
         'id' => $accountId,
         'bei_client_id' => '300455',
         'bei_host' => 'PILOTO',
+        'owner_type' => get_class($company),
+        'owner_id' => $company->id,
     ]);
 
     // 2. Sync Parametrics
     $parameters = ['actividades', 'productos-sin', 'metodos-de-pago'];
-    $api = EmizorSdk::withAccount($accountId);
+    $api = EmizorSdk::for($company);
     $api->syncParametrics($parameters);
 
     // Verify parametrics were synced

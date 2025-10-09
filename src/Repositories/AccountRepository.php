@@ -12,6 +12,11 @@ class AccountRepository
         return BeiAccount::create($data);
     }
 
+    public function updateOrCreate(array $attributes, array $values): BeiAccount
+    {
+        return BeiAccount::updateOrCreate($attributes, $values);
+    }
+
     public function getAccount(string $account_id): BeiAccount
     {
         return BeiAccount::find($account_id);

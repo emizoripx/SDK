@@ -17,14 +17,25 @@ return new class extends Migration {
             $table->boolean('bei_enable')->default(true);
             $table->boolean('bei_verified_setup')->default(false);
             $table->string('bei_client_id')->unique();
-            $table->string('bei_client_secret');
+            $table->text('bei_client_secret');
             $table->text('bei_token')->nullable();
             $table->timestamp('bei_deadline_token')->nullable();
             $table->string('bei_host');
             $table->json('bei_branches')->nullable();
             $table->boolean('bei_demo')->default(false);
+            $table->string('owner_id')->nullable();
             $table->timestamps();
         });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('bei_accounts');
     }
 
 };

@@ -17,15 +17,9 @@ class EmizorSdk extends Facade
         return app('emizorsdk')->register($callback);
     }
 
-    public static function withAccount(string $accountId)
+    public static function for($owner)
     {
-        return app('emizorsdk', ['accountId' => $accountId]);
+        return app('emizorsdk-manager')->for($owner);
     }
-
-    public static function PARAMETRICS_TYPES()
-    {
-        return app('emizorsdk')->listParametricsTypes();
-    }
-
 
 }

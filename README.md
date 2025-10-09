@@ -25,17 +25,40 @@ composer require emizor/sdk
 
 ## Usage
 
-After installation, you can use the SDK via facade or dependency injection.
+After installation, you can use the SDK via facade. The SDK uses an owner-based pattern where credentials are tied to your models (e.g., Company, User).
+
+### Owner Model Setup
+
+Add the trait to your models to enable EMIZOR credentials:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Emizor\SDK\Traits\HasEmizorCredentials;
+use Illuminate\Database\Eloquent\Model;
+
+class Company extends Model
+{
+    use HasEmizorCredentials;
+
+    // ... your model code
+}
+```
 
 ### Facade
 
 ```php
 use Emizor\SDK\Facade\EmizorSdk;
 
-// Register account with fluent builder
-$accountId = EmizorSdk::register(function ($builder) {
+// Register account tied to an owner
+$company = Company::find(1);
+$accountId = EmizorSdk::register(function ($builder) use ($company) {
     $builder->setClientId('your_client_id')
             ->setClientSecret('your_client_secret')
+            ->setOwnerType(get_class($company))
+            ->setOwnerId($company->id)
             ->usePilotoEnvironment(); // or useProductionEnvironment()
 });
 
@@ -44,30 +67,37 @@ $accountId = EmizorSdk::register(function ($builder) {
 // - Synchronizes global parametrics (payment methods, document types, etc.)
 // - Synchronizes account-specific parametrics (activities, SIN products, etc.)
 
-// Then use with account
-$api = EmizorSdk::withAccount($accountId);
+// Use the dynamic manager for operations
+$api = EmizorSdk::for($company);
 $api->syncParametrics(['actividades', 'productos']);
 ```
 
 ### Dependency Injection
 
-```php
-use Emizor\SDK\Contracts\EmizorApiContract;
+For advanced usage, resolve the manager directly:
 
-public function __construct(EmizorApiContract $api) {
+```php
+use Emizor\SDK\Services\EmizorManager;
+
+public function __construct(EmizorManager $api) {
     $this->api = $api;
 }
 ```
+
+Or use the facade for simplicity.
 
 ## Examples
 
 ### Register Account
 
 ```php
-// Using fluent builder pattern
-$accountId = $api->register(function ($builder) {
+// Using fluent builder pattern, tied to an owner
+$company = Company::find(1);
+$accountId = EmizorSdk::register(function ($builder) use ($company) {
     $builder->setClientId('your_client_id')
             ->setClientSecret('your_client_secret')
+            ->setOwnerType(get_class($company))
+            ->setOwnerId($company->id)
             ->usePilotoEnvironment();
 });
 
@@ -86,6 +116,8 @@ return EmizorSdk::PARAMETRICS_TYPES()
 ### Sync Parametrics
 
 ```php
+$company = Company::find(1);
+$api = EmizorSdk::for($company);
 $api->syncParametrics(['actividades', 'metodos-de-pago']);
 $parametric = $api->getParametric('actividades');
 ```
@@ -93,6 +125,8 @@ $parametric = $api->getParametric('actividades');
 ### Set Defaults
 
 ```php
+$company = Company::find(1);
+$api = EmizorSdk::for($company);
 $api->setDefaults(function ($builder) {
     $builder->setActivityCode('123')
             ->setBranch(['code' => '001', 'name' => 'Main Branch']);
@@ -103,6 +137,9 @@ $api->setDefaults(function ($builder) {
 
 ```php
 use Emizor\SDK\DTO\ClientDTO;
+
+$company = Company::find(1);
+$api = EmizorSdk::for($company);
 
 $client = new ClientDTO(
     'CLI001',

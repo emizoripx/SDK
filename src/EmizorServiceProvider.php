@@ -2,7 +2,7 @@
 
 namespace Emizor\SDK;
 
-use Emizor\SDK\Contracts\EmizorApiContract;
+
 use Emizor\SDK\Contracts\EmizorApiHttpContract;
 use Emizor\SDK\Contracts\GetInvoiceDetailContract;
 use Emizor\SDK\Contracts\HomologateProductContract;
@@ -108,19 +108,7 @@ class EmizorServiceProvider extends ServiceProvider
             return new RegisterService($app->make(AccountRepository::class));
         });
 
-        $this->app->bind(EmizorApiContract::class, function ($app, $params) {
-            return new EmizorApi(
-                $app->make(AccountRepository::class),
-                $app->make(AccountValidator::class),
-                $app->make(ParametricSyncValidator::class),
-                $app->make(ParametricContract::class),
-                $app->make(HomologateProductContract::class),
-                $app->make(InvoiceManagerContract::class),
-                $app->make(NitValidationContract::class),
-                $app->make(RegisterContract::class),
-                $params['accountId'] ?? null // 🔹 parámetro opcional
-            );
-        });
+
         $this->app->bind(ParametricContract::class, function($app) {
             $emizorApiHttp = $app->make(EmizorApiHttpContract::class);
             return new ParametricService($emizorApiHttp,  $app->make(ParametricRepository::class));
@@ -139,17 +127,58 @@ class EmizorServiceProvider extends ServiceProvider
             // Puedes usar una URL de prueba aquí
             return new LaravelHttpClient();
         });
-        // Registra el alias del facade
-        $this->app->bind('emizorsdk', function ($app, $params) {
-            return $app->make(EmizorApiContract::class, [
-                'accountId' => $params['accountId'] ?? null,
-            ]);
+        // Registra el alias del facade para register
+        $this->app->bind('emizorsdk', function ($app) {
+            return new class($app->make(AccountRepository::class), $app->make(RegisterContract::class)) {
+                private $repository;
+                private $registerService;
+
+                public function __construct($repository, $registerService)
+                {
+                    $this->repository = $repository;
+                    $this->registerService = $registerService;
+                }
+
+                public function register($callback)
+                {
+                    return $this->registerService->register($callback);
+                }
+            };
         });
 
         $this->mergeConfigFrom(
             __DIR__ . '/../config/emizor_sdk.php', 'emizor_sdk'
         );
 
+        $this->app->singleton('emizorsdk-manager', function ($app) {
+            return new class($app) {
+                private $app;
+
+                public function __construct($app)
+                {
+                    $this->app = $app;
+                }
+
+                public function for($owner)
+                {
+                    $credential = $owner instanceof \Emizor\SDK\Models\BeiAccount
+                        ? $owner
+                        : $owner->getEmizorCredentials();
+
+                    if (!$credential) {
+                        throw new \Exception("No Emizor credentials found for this owner.");
+                    }
+
+                    return new \Emizor\SDK\Services\EmizorManager(
+                        $credential,
+                        $this->app->make(\Emizor\SDK\Contracts\EmizorApiHttpContract::class),
+                        $this->app->make(\Emizor\SDK\Services\ParametricService::class),
+                        $this->app->make(\Emizor\SDK\Repositories\AccountRepository::class),
+                        $this->app->make(\Emizor\SDK\Contracts\HomologateProductContract::class)
+                    );
+                }
+            };
+        });
 
     }
 }

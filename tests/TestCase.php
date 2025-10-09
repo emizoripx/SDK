@@ -20,6 +20,12 @@ abstract class TestCase extends BaseTestCase
      */
     protected function getEnvironmentSetUp($app)
     {
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+
+        $app['config']->set('emizor_sdk.owners', [
+            'Tests\Models\Company' => 'Tests\Models\Company',
+        ]);
+
         $app['config']->set('database.default', 'mysql');
 
         $app['config']->set('database.connections.mysql', [
@@ -43,5 +49,6 @@ abstract class TestCase extends BaseTestCase
 
         // Run migrations automatically
         $this->loadMigrationsFrom(__DIR__ . '/../src/Database/migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/Database/migrations');
     }
 }

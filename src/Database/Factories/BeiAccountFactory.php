@@ -19,8 +19,10 @@ class BeiAccountFactory extends Factory
             'bei_verified_setup' => true,
             'bei_client_id' => $this->faker->unique()->lexify('CLIENT_????'),
             'bei_client_secret' => $this->faker->password(),
-            'bei_host' => $this->faker->url(),
+            'bei_host' => $this->faker->randomElement(['PILOTO', 'PRODUCTION']),
             'bei_demo' => true,
+            'owner_type' => null,
+            'owner_id' => null,
         ];
     }
 }

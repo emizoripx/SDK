@@ -18,16 +18,24 @@ class RegisterService implements RegisterContract
         $this->repository = $repository;
     }
 
-    public function register(Closure $callback): BeiAccount
+    public function register(Closure $callback): string
     {
         $builder = new RegisterBuilder();
         $callback($builder);
         $dto = $builder->build();
 
-        return $this->repository->create([
-            'bei_client_id' => $dto->clientId,
-            'bei_client_secret' => $dto->clientSecret,
-            'bei_host' => $dto->host,
-        ]);
+        $account = $this->repository->updateOrCreate(
+            [
+                'owner_type' => $dto->ownerType,
+                'owner_id' => $dto->ownerId,
+            ],
+            [
+                'bei_client_id' => $dto->clientId,
+                'bei_client_secret' => $dto->clientSecret,
+                'bei_host' => $dto->host,
+            ]
+        );
+
+        return $account->id;
     }
 }
