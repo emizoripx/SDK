@@ -174,7 +174,8 @@ class EmizorServiceProvider extends ServiceProvider
                         $this->app->make(\Emizor\SDK\Contracts\EmizorApiHttpContract::class),
                         $this->app->make(\Emizor\SDK\Services\ParametricService::class),
                         $this->app->make(\Emizor\SDK\Repositories\AccountRepository::class),
-                        $this->app->make(\Emizor\SDK\Contracts\HomologateProductContract::class)
+                        $this->app->make(\Emizor\SDK\Contracts\HomologateProductContract::class),
+                        $this->app->make(InvoiceRepository::class),
                     );
                 }
             };

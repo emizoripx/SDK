@@ -4,8 +4,10 @@ namespace Emizor\SDK\Services;
 
 use Emizor\SDK\Contracts\EmizorApiHttpContract;
 use Emizor\SDK\Contracts\HomologateProductContract;
+use Emizor\SDK\Mappers\BeiInvoiceMapper;
 use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Enums\InvoiceType;
+use Emizor\SDK\Repositories\InvoiceRepository;
 use Emizor\SDK\Services\ParametricService;
 use Emizor\SDK\Repositories\AccountRepository;
 use Emizor\SDK\Builders\DefaultsBuilder;
@@ -19,7 +21,8 @@ class EmizorManager
         EmizorApiHttpContract $apiService,
         protected ParametricService $parametricService,
         protected AccountRepository $accountRepository,
-        protected HomologateProductContract $homologateService
+        protected HomologateProductContract $homologateService,
+        protected InvoiceRepository $invoiceRepository
     ) {
         $this->apiService = $apiService;
     }
@@ -84,5 +87,9 @@ class EmizorManager
         return $this->homologateService->listHomologate($this->credential->id);
     }
 
-    // Add other methods as needed
+    public function getInvoice(string $ticket): array
+    {
+        $beiInvoiceEntity = BeiInvoiceMapper::toArray($this->invoiceRepository->get($ticket));
+        return $beiInvoiceEntity->jsonSerialize();
+    }
 }

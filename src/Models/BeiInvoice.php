@@ -33,6 +33,7 @@ class BeiInvoice extends Model
         'bei_pdf_url',
         'bei_giftcard_amount',
         'bei_exception_code',
+        'bei_revocation_code',
     ];
 
 
@@ -150,6 +151,7 @@ class BeiInvoice extends Model
         info("update bei fields" , $data);
         $this->bei_cuf = $data['cuf'];
         $this->bei_emission_date = $data['fechaEmision'];
+        $this->bei_pdf_url = isset($data['pdf_url']) ?$data['pdf_url']:"";
 
         $this->bei_additional =
             [

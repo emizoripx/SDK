@@ -3,6 +3,7 @@
 namespace Emizor\SDK\Repositories;
 
 use Carbon\Carbon;
+use Emizor\SDK\Entities\BeiInvoiceEntity;
 use Emizor\SDK\Enums\InvoiceType;
 use Emizor\SDK\Models\BeiInvoice;
 
@@ -27,9 +28,9 @@ class InvoiceRepository
         return $new['bei_ticket'];
     }
 
-    public function get($ticket)
+    public function get($ticket): BeiInvoice
     {
-        return BeiInvoice::where("beiTicket")->first();
+        return BeiInvoice::where("bei_ticket", $ticket)->first();
     }
 
     public function update($ticket, $response)

@@ -6,6 +6,7 @@ use Emizor\SDK\DTO\ClientDTO;
 use Emizor\SDK\DTO\RegisterDTO;
 use Emizor\SDK\Facade\EmizorSdk;
 use Emizor\SDK\Models\BeiAccount;
+use Emizor\SDK\Models\BeiInvoice;
 use Tests\Models\Company;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Lcobucci\JWT\Encoding\ChainedFormatter;
@@ -127,12 +128,37 @@ it('completes full workflow from registration to invoice revocation', function (
     // $homologated = $api->homologateProductList();
     // expect($homologated)->toBeArray();
 
-    // 6. Issue Invoice (skipped in test due to validation)
-    // $client = new ClientDTO(...);
-    // $details = [...];
-    // $ticket = 'INV-' . time();
-    // $api->issueInvoice(function ($builder) use ($client, $details) { ... }, $ticket);
-    // $this->assertDatabaseHas('bei_invoices', ['bei_ticket' => $ticket, 'bei_account_id' => $accountId]);
+    // 6. Create Invoice for testing getInvoice
+    $ticket = 'INV-' . time();
+    BeiInvoice::create([
+        'bei_ticket' => $ticket,
+        'bei_account_id' => $accountId,
+        'bei_step_emission' => 'complete',
+        'bei_step_revocation' => 'none',
+        'bei_amount_total' => 100.00,
+        'bei_sector_document_id' => 1,
+        'bei_pos_code' => 1,
+        'bei_branch_code' => 1,
+        'bei_payment_method' => 1,
+        'bei_client' => ['name' => 'Test Client'],
+        'bei_details' => [['product' => 'Test']],
+        'bei_additional' => [],
+        'bei_emission_date' => now(),
+        'bei_revocation_date' => null,
+        'bei_cuf' => 'test-cuf',
+        'bei_online' => true,
+        'bei_pdf_url' => 'test-url',
+        'bei_giftcard_amount' => 0,
+        'bei_exception_code' => '0',
+        'bei_revocation_code' => '1',
+    ]);
+
+    // Test getInvoice
+    $invoiceData = $api->getInvoice($ticket);
+    expect($invoiceData)->toBeArray();
+    expect($invoiceData['ticket'])->toBe($ticket);
+    expect($invoiceData['accountId'])->toBe($accountId);
+
     // $api->revocateInvoice($ticket, 1);
 
     // Test complete

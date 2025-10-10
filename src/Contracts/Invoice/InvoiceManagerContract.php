@@ -3,6 +3,7 @@
 namespace Emizor\SDK\Contracts\Invoice;
 
 use Closure;
+use Emizor\SDK\Entities\BeiInvoiceEntity;
 
 interface InvoiceManagerContract
 {
@@ -21,5 +22,12 @@ interface InvoiceManagerContract
      * @return void
      */
     public function revocateInvoice(string $ticket, int $revocationReasonCode):void;
+
+
+    /**
+     * @param string $ticket
+     * @return BeiInvoiceEntity
+     */
+    public function getInvoice(string $ticket):BeiInvoiceEntity;
 
 }
