@@ -11,9 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Laravel 12 Support**: Added compatibility with Laravel 12.x while maintaining Laravel 11.x support
 - **Updated Dependencies**: Updated illuminate packages to support both ^11.0 and ^12.0 versions
 - **Testbench Compatibility**: Updated orchestra/testbench to ^10.0 for Laravel 12 testing support
-- **Artisan Command**: Added `emizor:register` command for registering accounts via command line
+- **Artisan Commands**: Added `emizor:register` and `emizor:set-defaults` commands for CLI management
 - **Interactive Registration**: Support for both interactive and non-interactive account registration
-- **Command Validation**: Comprehensive input validation and error handling in CLI command
+- **Defaults Management**: Complete CLI interface for configuring account defaults with validation
+- **Command Validation**: Comprehensive input validation and error handling in CLI commands
 
 ### Changed
 - **PHP Requirement**: Updated minimum PHP version to >=8.2 to match Laravel 12 requirements

@@ -74,6 +74,7 @@ class EmizorServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Emizor\SDK\Console\Commands\RegisterEmizorAccount::class,
+                \Emizor\SDK\Console\Commands\SetEmizorDefaults::class,
             ]);
         }
     }

@@ -241,6 +241,64 @@ php artisan emizor:register --interactive
 # Follow the prompts to enter credentials
 ```
 
+### Configure Account Defaults
+
+Set default values for an existing EMIZOR account:
+
+#### Direct Configuration
+```bash
+php artisan emizor:set-defaults \
+  --account-id=550e8400-e29b-41d4-a716-446655440000 \
+  --type-document=1 \
+  --branch=1 \
+  --pos=1 \
+  --payment-method=efectivo \
+  --sin-product-code=61191 \
+  --activity-code=461091
+```
+
+#### View Current Defaults
+```bash
+php artisan emizor:set-defaults --account-id=uuid --show-current
+```
+
+#### Interactive Configuration
+```bash
+php artisan emizor:set-defaults --interactive
+# Select account and configure defaults interactively
+```
+
+#### Parameters
+- `--account-id`: Account UUID (required, unless using --client-id)
+- `--client-id`: Client ID (alternative to account-id)
+- `--type-document`: Document type
+- `--branch`: Branch number (0-20)
+- `--pos`: POS number (0-100)
+- `--payment-method`: Payment method
+- `--reason-revocation`: Revocation reason (1|3)
+- `--sin-product-code`: SIN product code
+- `--activity-code`: Activity code
+- `--interactive`: Interactive mode
+- `--show-current`: Show current defaults
+- `--validate-only`: Validate without saving
+
+#### Examples
+
+**Update specific defaults:**
+```bash
+php artisan emizor:set-defaults --account-id=uuid --branch=2 --pos=5
+```
+
+**Find by client ID:**
+```bash
+php artisan emizor:set-defaults --client-id=300455 --type-document=1
+```
+
+**Validate before applying:**
+```bash
+php artisan emizor:set-defaults --account-id=uuid --type-document=1 --validate-only
+```
+
 ### Revocate Invoice
 
 ```php
