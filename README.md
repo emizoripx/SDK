@@ -170,6 +170,7 @@ $api->issueInvoice(function ($builder) use ($client) {
 
 ```php
 $result = $api->validateNit('123456');
+
 if ($result['status'] === 'success' && isset($result['data'])) {
     $data = $result['data'];
     if ($data['codigo'] == 0) {
@@ -178,6 +179,66 @@ if ($result['status'] === 'success' && isset($result['data'])) {
         echo "NIT validation failed: {$data['descripcion']}";
     }
 }
+```
+
+## Command Line Interface
+
+### Register Account via Artisan
+
+The package provides an Artisan command for registering EMIZOR accounts from the command line:
+
+#### Interactive Mode
+```bash
+php artisan emizor:register --interactive
+```
+
+#### Non-Interactive Mode
+```bash
+php artisan emizor:register \
+  --client-id=300455 \
+  --client-secret=your-secret \
+  --environment=piloto \
+  --owner-type=App\\Models\\Company \
+  --owner-id=company-uuid
+```
+
+#### Parameters
+- `--client-id`: EMIZOR Client ID (required)
+- `--client-secret`: EMIZOR Client Secret (required)
+- `--environment`: `piloto` or `production` (default: `piloto`)
+- `--owner-type`: Owner model class (optional)
+- `--owner-id`: Owner model ID (optional)
+- `--interactive`: Interactive mode
+- `--force`: Force registration even if account exists
+
+#### Examples
+
+**Basic registration:**
+```bash
+php artisan emizor:register --client-id=123 --client-secret=secret
+```
+
+**Production environment:**
+```bash
+php artisan emizor:register \
+  --client-id=123 \
+  --client-secret=secret \
+  --environment=production
+```
+
+**With owner association:**
+```bash
+php artisan emizor:register \
+  --client-id=123 \
+  --client-secret=secret \
+  --owner-type=App\\Models\\Company \
+  --owner-id=550e8400-e29b-41d4-a716-446655440000
+```
+
+**Interactive mode:**
+```bash
+php artisan emizor:register --interactive
+# Follow the prompts to enter credentials
 ```
 
 ### Revocate Invoice

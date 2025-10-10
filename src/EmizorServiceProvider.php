@@ -69,6 +69,13 @@ class EmizorServiceProvider extends ServiceProvider
                 Event::listen($event, $listener);
             }
         }
+
+        // Register Artisan commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Emizor\SDK\Console\Commands\RegisterEmizorAccount::class,
+            ]);
+        }
     }
 
     /**
