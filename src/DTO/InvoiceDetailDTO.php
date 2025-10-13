@@ -37,8 +37,8 @@ final class InvoiceDetailDTO
             'quantity'     => ['required', 'numeric', 'min:0.01'],
             'unit_price'   => ['required', 'numeric', 'min:0'],
             'unit_code'    => ['nullable', 'string'],
-            'sin_product_code'    => ['nullable', 'string'],
-            'activity_code'    => ['nullable', 'string'],
+            'sin_product_code'    => ['required', 'string'],
+            'activity_code'    => ['required', 'string'],
         ];
 
         $validator = Validator::make($data, $rules);
