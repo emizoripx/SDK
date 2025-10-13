@@ -31,14 +31,18 @@ class InvoiceManagerService implements InvoiceManagerContract
 
     public function createAndEmitInvoice(Closure $callback, string $ticket, BeiAccount $beiAccount): void
     {
-        $defaults = $this->repositoryAccount->getDefaults($beiAccount->id);
+        $beiInvoice = $this->invoiceRepository->findByTicket($ticket);
+        if (empty($beiInvoice)) { // TODO: refactor logic for retry same ticket
 
-        $builder = new InvoiceBuilder($ticket, $defaults);
-        $callback($builder, $ticket);
+            $defaults = $this->repositoryAccount->getDefaults($beiAccount->id);
 
-        $payload = $builder->build();
+            $builder = new InvoiceBuilder($ticket, $defaults);
+            $callback($builder, $ticket);
 
-        $this->invoiceRepository->store([...$payload->toArray(),"bei_account_id" => $beiAccount->id]);
+            $payload = $builder->build();
+
+            $this->invoiceRepository->store([...$payload->toArray(),"bei_account_id" => $beiAccount->id]);
+        }
         info("===================>validating nit");
         ValidateNit::dispatchSync($ticket);
         info("===================>emiting invoice");
