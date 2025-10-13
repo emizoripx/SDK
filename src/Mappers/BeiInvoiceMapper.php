@@ -17,7 +17,7 @@ class BeiInvoiceMapper
             (string) $beiInvoice->bei_revocation_code,
             $beiInvoice->bei_step_emission,
             $beiInvoice->bei_step_revocation,
-            (string) $beiInvoice->bei_amount_total,
+            (float) $beiInvoice->bei_amount_total,
             (string) $beiInvoice->bei_sector_document_id,
             (string) $beiInvoice->bei_pos_code,
             (string) $beiInvoice->bei_branch_code,
