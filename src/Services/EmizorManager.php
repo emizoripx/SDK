@@ -93,7 +93,7 @@ class EmizorManager
         return $beiInvoiceEntity->jsonSerialize();
     }
 
-    public function refreshToken(string $nit): array
+    public function refreshToken(): array
     {
         return $this->apiService->generateToken($this->credential->bei_host, $this->credential->bei_client_id, $this->credential->bei_client_secret);
     }
