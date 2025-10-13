@@ -174,12 +174,14 @@ class EmizorServiceProvider extends ServiceProvider
 
                 public function for($owner)
                 {
-                    $credential = $owner instanceof \Emizor\SDK\Models\BeiAccount
-                        ? $owner
-                        : $owner->getEmizorCredentials();
+                    $credential = $owner->getEmizorCredentials();
 
                     if (!$credential) {
                         throw new \Exception("No Emizor credentials found for this owner.");
+                    }
+
+                    if($credential->isCompletelySetup()) {
+                        throw new \Exception("Setup is not complete for this owner.");
                     }
 
                     return new \Emizor\SDK\Services\EmizorManager(

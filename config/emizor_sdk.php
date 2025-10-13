@@ -3,11 +3,11 @@
 return [
     /**
      * Allowed owner types for polymorphic relations
-     * Add your models here, e.g., 'company' => App\Models\Company::class
+     * Add your models here, e.g., App\Models\Company::class
      */
     'owners' => [
-        // 'company' => App\Models\Company::class,
-        // 'user' => App\Models\User::class,
+        //  App\Models\Company::class,
+        //  App\Models\User::class,
     ],
 
     /**

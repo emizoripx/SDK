@@ -92,4 +92,9 @@ class EmizorManager
         $beiInvoiceEntity = BeiInvoiceMapper::toArray($this->invoiceRepository->get($ticket));
         return $beiInvoiceEntity->jsonSerialize();
     }
+
+    public function refreshToken(string $nit): array
+    {
+        return $this->apiService->generateToken($this->credential->bei_host, $this->credential->bei_client_id, $this->credential->bei_client_secret);
+    }
 }

@@ -133,8 +133,8 @@ class RegisterEmizorAccount extends Command
             $errors[] = 'Environment must be either "piloto" or "production"';
         }
 
-        if ($data['owner_type'] && !class_exists($data['owner_type'])) {
-            $errors[] = "Owner model class '{$data['owner_type']}' does not exist";
+        if ($data['owner_type'] && !in_array($data['owner_type'] ,[ config('emizor_sdk.owners', [])]) ) {
+            $errors[] = "Owner model class '{$data['owner_type']}' does not exist. It has to be set in emizor_sdk config.";
         }
 
         if ($data['owner_type'] && empty($data['owner_id'])) {

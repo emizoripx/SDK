@@ -39,7 +39,7 @@ class RegisterDTO
             'client_id' => ['required', 'string', 'min:4', 'max:8'],
             'client_secret' => ['required', 'string', 'min:10'],
             'owner_id' => ['nullable', 'string'],
-            'owner_type' => ['nullable', 'string', 'in:' . implode(',', array_keys(config('emizor_sdk.owners', [])))],
+            'owner_type' => ['nullable', 'string', 'in:' . implode(',', config('emizor_sdk.owners', []))],
         ];
 
         $messages = [

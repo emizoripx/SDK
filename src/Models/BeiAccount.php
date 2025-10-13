@@ -55,4 +55,9 @@ class BeiAccount extends Model
         return $this->morphTo();
     }
 
+    public function isCompletelySetup()
+    {
+        return $this->bei_enable;
+    }
+
 }
