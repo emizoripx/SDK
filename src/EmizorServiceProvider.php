@@ -54,6 +54,11 @@ class EmizorServiceProvider extends ServiceProvider
 
         $this->loadFactoriesFrom(__DIR__ . '/Database/factories');
 
+        $this->publishes([
+
+            __DIR__.'/../config/emizor_sdk.php' => config_path('emizor_sdk.php'),
+
+        ]);
 
         BeiAccount::observe(BeiAccountObserver::class);
 
