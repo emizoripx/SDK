@@ -12,41 +12,54 @@ use Emizor\SDK\Jobs\Emit;
 use Emizor\SDK\Jobs\Revocate;
 use Emizor\SDK\Jobs\ValidateNit;
 use Emizor\SDK\Mappers\BeiInvoiceMapper;
+use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Repositories\AccountRepository;
 use Emizor\SDK\Repositories\InvoiceRepository;
 
 class InvoiceManagerService implements InvoiceManagerContract
 {
     protected HttpClientInterface $http;
-    protected InvoiceRepository $repository;
+    protected InvoiceRepository $invoiceRepository;
     private AccountRepository $repositoryAccount;
 
-    public function __construct( InvoiceRepository $repository, AccountRepository $repositoryAccount)
+    public function __construct( InvoiceRepository $invoiceRepository, AccountRepository $repositoryAccount)
     {
-        $this->repository = $repository;
+        $this->$invoiceRepository = $invoiceRepository;
         $this->repositoryAccount = $repositoryAccount;
     }
 
 
-    public function createAndEmitInvoice(Closure $callback, string $ticket, string $accountId): void
+    public function createAndEmitInvoice(Closure $callback, string $ticket, BeiAccount $beiAccount): void
     {
-        $defaults = $this->repositoryAccount->getDefaults($accountId);
+        $defaults = $this->repositoryAccount->getDefaults($beiAccount->id);
 
         $builder = new InvoiceBuilder($ticket, $defaults);
         $callback($builder, $ticket);
 
         $payload = $builder->build();
 
-        $this->repository->store([...$payload->toArray(),"bei_account_id" => $accountId]);
+        $this->invoiceRepository->store([...$payload->toArray(),"bei_account_id" => $beiAccount->id]);
         info("===================>validating nit");
         ValidateNit::dispatchSync($ticket);
         info("===================>emiting invoice");
         Emit::dispatchSync($ticket);
     }
 
-    public function revocateInvoice(string $ticket, int $revocationReasonCode):void
+    public function revokeInvoice(string $ticket, int $revocationReasonCode):void
     {
+        $beiInvoice = $this->invoiceRepository->findByTicket($ticket);
+        if (empty($beiInvoice)) {
+            throw new \Exception("Invoice with ticket: $ticket not found");
+        }
         Revocate::dispatchSync($ticket, $revocationReasonCode);
     }
 
+    public function getInvoice(string $ticket): BeiInvoiceEntity
+    {
+        $beiInvoice = $this->invoiceRepository->findByTicket($ticket);
+        if (empty($beiInvoice)) {
+            throw new \Exception("Invoice with ticket: $ticket not found");
+        }
+        return BeiInvoiceMapper::toArray($beiInvoice);
+    }
 }

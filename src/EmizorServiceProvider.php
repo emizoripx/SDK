@@ -23,6 +23,7 @@ use Emizor\SDK\Repositories\HomologateProductRepository;
 use Emizor\SDK\Repositories\InvoiceRepository;
 use Emizor\SDK\Repositories\ParametricRepository;
 use Emizor\SDK\Services\EmizorApiService;
+use Emizor\SDK\Services\EmizorManager;
 use Emizor\SDK\Services\HomologateProductService;
 use Emizor\SDK\Services\Invoice\GetInvoiceDetailService;
 use Emizor\SDK\Services\Invoice\InvoiceEmissionService;
@@ -31,6 +32,7 @@ use Emizor\SDK\Services\Invoice\InvoiceRevocationService;
 use Emizor\SDK\Services\NitValidationService;
 use Emizor\SDK\Services\ParametricService;
 use Emizor\SDK\Services\RegisterService;
+use Emizor\SDK\Services\TokenManager;
 use Emizor\SDK\Services\TokenService;
 use Emizor\SDK\Validators\AccountValidator;
 use Emizor\SDK\Validators\HomologateProductsValidator;
@@ -180,13 +182,14 @@ class EmizorServiceProvider extends ServiceProvider
                         throw new \Exception("No Emizor credentials found for this owner.");
                     }
 
-                    return new \Emizor\SDK\Services\EmizorManager(
+                    return new EmizorManager(
                         $credential,
-                        $this->app->make(\Emizor\SDK\Contracts\EmizorApiHttpContract::class),
-                        $this->app->make(\Emizor\SDK\Services\ParametricService::class),
-                        $this->app->make(\Emizor\SDK\Repositories\AccountRepository::class),
-                        $this->app->make(\Emizor\SDK\Contracts\HomologateProductContract::class),
+                        $this->app->make(ParametricService::class),
+                        $this->app->make(AccountRepository::class),
+                        $this->app->make(HomologateProductContract::class),
                         $this->app->make(InvoiceRepository::class),
+                        $this->app->make(InvoiceManagerContract::class),
+                        $this->app->make(TokenManager::class)
                     );
                 }
             };

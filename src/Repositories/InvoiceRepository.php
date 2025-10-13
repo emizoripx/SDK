@@ -28,6 +28,11 @@ class InvoiceRepository
         return $new['bei_ticket'];
     }
 
+    public function findByTicket($ticket):BeiInvoice
+    {
+        return BeiInvoice::where("bei_ticket", $ticket)->first();
+    }
+
     public function get($ticket): BeiInvoice
     {
         return BeiInvoice::where("bei_ticket", $ticket)->first();

@@ -78,11 +78,9 @@ class SyncGlobalParametrics implements ShouldQueue
 
             foreach ($types as $type) {
                 info("Syncing parametric: {$type->value} for account {$this->account->id}");
-                $parametricService->sync(
-                    $this->account->bei_host,
-                    $this->account->bei_token,
+                $parametricService->syncAndSaveParametric(
+                    $this->account,
                     $type->value,
-                    $this->account->id
                 );
                 info("Parametric {$type->value} synced successfully for account {$this->account->id}");
             }

@@ -17,10 +17,10 @@ class TokenManager
         $this->repository = $repository;
     }
 
-    public function generateAndSaveToken(BeiAccount $account): void
+    public function generateAndSaveToken(BeiAccount $beiAccount): void
     {
-        $response = $this->tokenService->generate($account->bei_host,$account->bei_client_id, $account->bei_client_secret);
+        $response = $this->tokenService->generate($beiAccount->bei_host, $beiAccount->client_id, $beiAccount->client_secret);
 
-        $this->repository->saveToken($account->id, $response["token"],$response["expires_at"]);
+        $this->repository->saveToken($beiAccount->id, $response["token"],$response["expires_at"]);
     }
 }

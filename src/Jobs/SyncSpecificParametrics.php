@@ -5,8 +5,6 @@ namespace Emizor\SDK\Jobs;
 use Emizor\SDK\Contracts\ParametricContract;
 use Emizor\SDK\Enums\ParametricType;
 use Emizor\SDK\Models\BeiAccount;
-use Emizor\SDK\Services\Invoice\InvoiceNitValidationService;
-use Emizor\SDK\Services\TokenManager;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -78,11 +76,9 @@ class SyncSpecificParametrics implements ShouldQueue
 
             foreach ($types as $type) {
                 info("Syncing parametric: {$type->value} for account {$this->account->id}");
-                $parametricService->sync(
-                    $this->account->bei_host,
-                    $this->account->bei_token,
+                $parametricService->syncAndSaveParametric(
+                    $this->account,
                     $type->value,
-                    $this->account->id
                 );
                 info("Parametric {$type->value} synced successfully for account {$this->account->id}");
             }
