@@ -19,8 +19,8 @@ class EmissionDetailsResource extends JsonResource
         return [
             "codigoProducto" => $this->resource["product_code"],
 
-            "codigoProductoSin" => $this->resource["bei_sin_product_code"],
-            "codigoActividadSin" => $this->resource["bei_activity_code"],
+            "codigoProductoSin" => $this->resource["sin_product_code"],
+            "codigoActividadSin" => $this->resource["activity_code"],
 
             "descripcion" => $this->resource["description"],
             "cantidad" => $this->resource["quantity"],
