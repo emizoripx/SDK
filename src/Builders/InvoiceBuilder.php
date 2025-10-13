@@ -36,7 +36,7 @@ class InvoiceBuilder
                 quantity: $detail["quantity"]??0,
                 unitPrice: $detail["unit_price"]??0,
                 unitCode: $detail["unit_code"]??"",
-                sinProductCode: $detail["sin_product_cde"] ?? ($this->defaults["sin_product_cde"]??""),
+                sinProductCode: $detail["sin_product_code"] ?? ($this->defaults["sin_product_code"]??""),
                 activityCode: $detail["activity_code"]?? ($this->defaults["activity_code"]??"")
             );
         }
