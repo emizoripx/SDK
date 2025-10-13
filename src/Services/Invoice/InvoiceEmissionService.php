@@ -4,6 +4,8 @@ namespace Emizor\SDK\Services\Invoice;
 
 use Emizor\SDK\Contracts\EmizorApiHttpContract;
 use Emizor\SDK\Contracts\Invoice\InvoiceEmissionContract;
+use Emizor\SDK\Events\FailedInvoiceEmission;
+use Emizor\SDK\Events\InvoiceRejected;
 use Emizor\SDK\Exceptions\EmizorApiAssociationException;
 use Emizor\SDK\Jobs\Details;
 use Emizor\SDK\Models\BeiInvoice;
@@ -30,9 +32,6 @@ class InvoiceEmissionService implements InvoiceEmissionContract
         }
 
         try {
-            // Merge invoice details with homologated products to add SIN codes
-            $this->mergeProductDetails($invoice);
-
             $data = (new EmissionResource($invoice))->resolve();
 
             info("EMIT TICKET: {$ticket} - Preparing emission data");
@@ -47,52 +46,6 @@ class InvoiceEmissionService implements InvoiceEmissionContract
             $this->handleFailureResponse($invoice, ['errors' => $th->getMessage()], $id_log_request);
         }
 
-    }
-
-    /**
-     * Merge invoice details with homologated products to add SIN codes
-     */
-    private function mergeProductDetails(BeiInvoice $invoice): void
-    {
-        $details = $invoice->bei_details ?? [];
-
-        if (empty($details)) {
-            return;
-        }
-
-        $accountDefaults = $invoice->bei_account->bei_defaults ?? [];
-
-        $mergedDetails = [];
-        foreach ($details as $detail) {
-            $productCode = $detail['product_code'] ?? '';
-
-            // Find homologated product
-            $homologatedProduct = BeiProduct::where('bei_account_id', $invoice->bei_account_id)
-                ->where('bei_product_code', $productCode)
-                ->first();
-
-            if ($homologatedProduct) {
-                $detail['bei_sin_product_code'] = $homologatedProduct->bei_sin_product_code;
-                $detail['bei_activity_code'] = $homologatedProduct->bei_activity_code;
-            } else {
-                // Use account defaults if not homologated
-                $sinProductCode = $detail['bei_sin_product_code'] ?? $accountDefaults['sin_product_code'] ?? null;
-                $activityCode = $detail['bei_activity_code'] ?? $accountDefaults['activity_code'] ?? null;
-
-                if (is_null($sinProductCode) || is_null($activityCode)) {
-                    throw new EmizorApiAssociationException("Product '{$productCode}' is not homologated and no account defaults are set for SIN product code or activity code.");
-                }
-
-                $detail['bei_sin_product_code'] = $sinProductCode;
-                $detail['bei_activity_code'] = $activityCode;
-            }
-
-            $mergedDetails[] = $detail;
-        }
-
-        // Update invoice with merged details
-        $invoice->bei_details = $mergedDetails;
-        $invoice->saveQuietly();
     }
 
     private function sendRequestInvoice(BeiInvoice $invoice, array $data): array
@@ -138,8 +91,7 @@ class InvoiceEmissionService implements InvoiceEmissionContract
         info("Emission failed for ticket {$ticket}: {$errors}");
         BeiRequestLogs::saveLog($ticket, $response, BeiRequestLogs::EMISSION_EVENT, 400, $id_log_request);
 
-        // TODO: Consider dispatching an event for failed emissions
-        // event(new FailedInvoiceEmission($ticket, $errors));
+        event(new InvoiceRejected($ticket, -1,$errors));
     }
 
     /**

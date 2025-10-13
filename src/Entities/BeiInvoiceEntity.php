@@ -10,7 +10,7 @@ class BeiInvoiceEntity
             readonly private ?string $bei_revocation_code,
             readonly private string $bei_step_emission,
             readonly private string $bei_step_revocation,
-            readonly private string $bei_amount_total,
+            readonly private float $bei_amount_total,
             readonly private ?string $bei_sector_document_id,
             readonly private ?string $bei_pos_code,
             readonly private ?string $bei_branch_code,
@@ -48,7 +48,7 @@ class BeiInvoiceEntity
         return $this->bei_step_revocation;
     }
 
-    public function getBeiAmountTotal(): string
+    public function getBeiAmountTotal(): float
     {
         return $this->bei_amount_total;
     }
@@ -73,17 +73,17 @@ class BeiInvoiceEntity
         return $this->bei_payment_method;
     }
 
-    public function getBeiClient(): string
+    public function getBeiClient(): array
     {
         return $this->bei_client;
     }
 
-    public function getBeiDetails(): string
+    public function getBeiDetails(): array
     {
         return $this->bei_details;
     }
 
-    public function getBeiAdditional(): string
+    public function getBeiAdditional(): array
     {
         return $this->bei_additional;
     }

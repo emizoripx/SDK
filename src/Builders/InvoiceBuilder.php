@@ -29,13 +29,15 @@ class InvoiceBuilder
 
     public function setDetails(array $details): self
     {
-        foreach ($details as $d) {
+        foreach ($details as $detail) {
             $this->details[] = new InvoiceDetailDTO(
-                $d["product_code"]??"",
-                $d["description"]??"",
-                $d["quantity"]??0,
-                $d["unit_price"]??0,
-                $d["unit_code"]??"",
+                productCode: $detail["product_code"]??"",
+                description: $detail["description"]??"",
+                quantity: $detail["quantity"]??0,
+                unitPrice: $detail["unit_price"]??0,
+                unitCode: $detail["unit_code"]??"",
+                sinProductCode: $detail["sin_product_cde"] ?? ($this->defaults["sin_product_cde"]??""),
+                activityCode: $detail["activity_code"]?? ($this->defaults["activity_code"]??"")
             );
         }
         return $this;

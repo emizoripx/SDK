@@ -8,11 +8,13 @@ use Emizor\SDK\Exceptions\EmizorApiDefaultsValidationException;
 final class InvoiceDetailDTO
 {
     public function __construct(
-        private string $product_code,
+        private string $productCode,
         private string $description,
         private float $quantity,
-        private float $unit_price,
-        private ?string $unit_code = null
+        private float $unitPrice,
+        private ?string $unitCode = null,
+        private ?string $sinProductCode = null,
+        private ?string $activityCode = null
     ) {
         $this->validate();
     }
@@ -20,11 +22,13 @@ final class InvoiceDetailDTO
     private function validate(): void
     {
         $data = [
-            'product_code' => $this->product_code,
+            'product_code' => $this->productCode,
             'description'  => $this->description,
             'quantity'     => $this->quantity,
-            'unit_price'   => $this->unit_price,
-            'unit_code'    => $this->unit_code,
+            'unit_price'   => $this->unitPrice,
+            'unit_code'    => $this->unitCode,
+            'sin_product_code' => $this->sinProductCode,
+            'activity_code' => $this->activityCode,
         ];
 
         $rules = [
@@ -33,6 +37,8 @@ final class InvoiceDetailDTO
             'quantity'     => ['required', 'numeric', 'min:0.01'],
             'unit_price'   => ['required', 'numeric', 'min:0'],
             'unit_code'    => ['nullable', 'string'],
+            'sin_product_code'    => ['nullable', 'string'],
+            'activity_code'    => ['nullable', 'string'],
         ];
 
         $validator = Validator::make($data, $rules);
@@ -47,11 +53,13 @@ final class InvoiceDetailDTO
     public function toArray(): array
     {
         return [
-            'product_code' => $this->product_code,
+            'product_code' => $this->productCode,
             'description'  => $this->description,
             'quantity'     => $this->quantity,
-            'unit_price'   => $this->unit_price,
-            'unit_code'    => $this->unit_code,
+            'unit_price'   => $this->unitPrice,
+            'unit_code'    => $this->unitCode,
+            'sin_product_code' => $this->sinProductCode,
+            'activity_code' => $this->activityCode
         ];
     }
 }
