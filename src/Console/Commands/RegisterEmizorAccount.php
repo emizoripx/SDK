@@ -99,9 +99,10 @@ class RegisterEmizorAccount extends Command
             'client_secret' => $this->secret('Client Secret'),
             'environment' => $this->choice('Environment', ['piloto', 'production'], 'piloto'),
             'owner_type' => $this->askOptional('Owner Type (optional)'),
-            'owner_id' => $this->askOptional('Owner ID (optional)', null, function ($value) {
+          /*  'owner_id' => $this->askOptional('Owner ID (optional)', null, function ($value) {
                 return !empty($this->askOptional('Owner Type (optional)')) ? $value : null;
-            }),
+            }),*/
+            'owner_id' => $this->askOptional('Owner ID (optional)'),
         ];
     }
 
