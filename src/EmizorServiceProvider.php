@@ -180,10 +180,6 @@ class EmizorServiceProvider extends ServiceProvider
                         throw new \Exception("No Emizor credentials found for this owner.");
                     }
 
-                    if($credential->isCompletelySetup()) {
-                        throw new \Exception("Setup is not complete for this owner.");
-                    }
-
                     return new \Emizor\SDK\Services\EmizorManager(
                         $credential,
                         $this->app->make(\Emizor\SDK\Contracts\EmizorApiHttpContract::class),
