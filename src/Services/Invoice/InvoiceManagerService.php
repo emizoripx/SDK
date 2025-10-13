@@ -24,7 +24,7 @@ class InvoiceManagerService implements InvoiceManagerContract
 
     public function __construct( InvoiceRepository $invoiceRepository, AccountRepository $repositoryAccount)
     {
-        $this->$invoiceRepository = $invoiceRepository;
+        $this->invoiceRepository = $invoiceRepository;
         $this->repositoryAccount = $repositoryAccount;
     }
 
