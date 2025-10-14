@@ -24,7 +24,7 @@ interface HttpClientInterface
      * @param string $uri
      * @param array $options
      */
-    public function get(string $uri, array $options = []): array;
+    public function get(string $uri, array $options = []):void;
 
     /**
      * Make a POST request to a dynamic host.
@@ -33,7 +33,7 @@ interface HttpClientInterface
      * @param array $data
      * @param array $options
      */
-    public function post(string $uri, array $data = [], array $options = []): array;
+    public function post(string $uri, array $data = [], array $options = []):void;
 
     /**
      * Make a PUT request to a dynamic host.
@@ -42,7 +42,7 @@ interface HttpClientInterface
      * @param array $data
      * @param array $options
      */
-    public function put(string $uri, array $data = [], array $options = []): array;
+    public function put(string $uri, array $data = [], array $options = []):void;
 
     /**
      * Make a DELETE request to a dynamic host.
@@ -51,5 +51,19 @@ interface HttpClientInterface
      * @param array $data
      * @param array $options
      */
-    public function delete(string $uri, array $data = [], array $options = []): array;
+    public function delete(string $uri, array $data = [], array $options = []):void;
+
+
+    /**
+     * Return saved response
+     * @return array
+     */
+    public function getResponse():array;
+
+    /**
+     * Return status code
+     * @return int
+     */
+    public function getStatus():int;
+
 }

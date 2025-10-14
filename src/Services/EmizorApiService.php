@@ -16,6 +16,11 @@ class EmizorApiService implements EmizorApiHttpContract
         $this->http = $http;
     }
 
+    private function isSuccesfulResponse($statusCode): bool
+    {
+        return in_array($statusCode, [200, 201]);
+    }
+
     private function resolveHost(string $host): string
     {
         return match ($host) {
@@ -29,18 +34,23 @@ class EmizorApiService implements EmizorApiHttpContract
     {
         $configuredHttp = $this->http->withBaseUri($this->resolveHost($host));
 
-        return $configuredHttp->post('/oauth/token', [
+        $configuredHttp->post('/oauth/token', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
             'grant_type' => 'client_credentials',
         ]);
+
+        return $configuredHttp->getResponse();
+
     }
 
     public function checkNit(string $host, string $token, $nit): array
     {
         $configuredHttp = $this->http->withBaseUri($this->resolveHost($host))->withToken($token);
 
-        return $configuredHttp->get("/api/v1/sucursales/0/validate-nit/$nit");
+        $configuredHttp->get("/api/v1/sucursales/0/validate-nit/$nit");
+
+        return $configuredHttp->getResponse();
     }
 
     public function sendInvoice(string $host, string $token, array $data): array
@@ -49,7 +59,8 @@ class EmizorApiService implements EmizorApiHttpContract
 
         $endpoint = "/api/v1/sucursales/" . $data['codigoSucursal'] . "/facturas/" . InvoiceType::getName($data["codigoDocumentoSector"]);
         info("send to " . $endpoint);
-        return $configuredHttp->post($endpoint, $data);
+        $configuredHttp->post($endpoint, $data);
+        return $configuredHttp->getResponse();
     }
 
     public function getDetailInvoice(string $host, string $token, string $ticket): array
@@ -58,7 +69,8 @@ class EmizorApiService implements EmizorApiHttpContract
 
         $endpoint = "/api/v1/facturas/$ticket";
         info("send to " . $endpoint);
-        return $configuredHttp->get($endpoint, ["unique_code" => 'true']);
+        $configuredHttp->get($endpoint, ["unique_code" => 'true']);
+        return $configuredHttp->getResponse();
     }
 
     public function revocateInvoice(string $host, string $token, string $ticket, int $revocationReasonCode): array
@@ -67,7 +79,8 @@ class EmizorApiService implements EmizorApiHttpContract
 
         $endpoint = "/api/v1/facturas/$ticket/anular";
         info("send to " . $endpoint);
-        return $configuredHttp->delete($endpoint, ["codigoMotivoAnulacion" => $revocationReasonCode]);
+        $configuredHttp->delete($endpoint, ["codigoMotivoAnulacion" => $revocationReasonCode]);
+        return $configuredHttp->getResponse();
     }
 
     public function getParametrics(string $host, string $token, string $type): array
@@ -75,7 +88,8 @@ class EmizorApiService implements EmizorApiHttpContract
         $configuredHttp = $this->http->withBaseUri($this->resolveHost($host))->withToken($token);
 
         $endpoint = "/api/v1/parametricas/" . $type;
-        return $configuredHttp->get($endpoint);
+        $configuredHttp->get($endpoint);
+        return $configuredHttp->getResponse();
     }
 
 }

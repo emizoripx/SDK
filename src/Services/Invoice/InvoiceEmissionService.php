@@ -4,13 +4,10 @@ namespace Emizor\SDK\Services\Invoice;
 
 use Emizor\SDK\Contracts\EmizorApiHttpContract;
 use Emizor\SDK\Contracts\Invoice\InvoiceEmissionContract;
-use Emizor\SDK\Events\FailedInvoiceEmission;
 use Emizor\SDK\Events\InvoiceRejected;
-use Emizor\SDK\Exceptions\EmizorApiAssociationException;
 use Emizor\SDK\Jobs\Details;
 use Emizor\SDK\Models\BeiInvoice;
 use Emizor\SDK\Models\BeiOfflineInvoiceTracking;
-use Emizor\SDK\Models\BeiProduct;
 use Emizor\SDK\Models\BeiRequestLogs;
 use Emizor\SDK\Transformers\EmissionResource;
 

@@ -3,7 +3,10 @@
 namespace Emizor\SDK\Services\Invoice;
 
 use Emizor\SDK\Contracts\EmizorApiHttpContract;
-use Emizor\SDK\Contracts\Invoice\InvoiceManagerContract;
+use Emizor\SDK\Events\InvoiceAccepted;
+use Emizor\SDK\Events\InvoiceRejected;
+use Emizor\SDK\Events\InvoiceRevocated;
+use Emizor\SDK\Events\InvoiceRevocationRejected;
 use Emizor\SDK\Models\BeiInvoice;
 use Emizor\SDK\Models\BeiOfflineInvoiceTracking;
 use Emizor\SDK\Models\BeiRequestLogs;
@@ -55,24 +58,14 @@ class InvoiceDetailService
             BeiRequestLogs::saveLog($ticket, $response, BeiRequestLogs::GET_DETAIL_EVENT, 200, $id_log_response);
             try {
                 $this->processResponse($invoice, $response);
-                info("ANTES DETAILSSS ===============");
+
                 $invoice->updateBEIfields($response);
-                info("DEPUES DETAILSSS ===============");
+
                 BeiOfflineInvoiceTracking::remove($ticket);
                 return;
 
             } catch (\Throwable $th) {
-                if($th->getMessage() == "CODE_997_REVOCATION") {
-//                    event(new FailedInvoiceSin($this->company_id, "Anulación Rechazada de la Factura #" . $invoice->number, " Factura consolidada ó usada."));
-                    return;
-                }
-
-                if($th->getMessage() == "CODE_902_EMISSION") {
-                    $invoice->updateBEIfields($response);
-                    BeiOfflineInvoiceTracking::remove($ticket);
-//                    event(new FailedInvoiceSin($this->company_id, "Emisión Rechazada de la Factura #" . $invoice->number, $this->getErrorRejection($response)));
-                    return;
-                }
+                throw $th;
             }
 
         } else {
@@ -85,27 +78,27 @@ class InvoiceDetailService
 
     public function processResponse(BeiInvoice $invoice, $response)
     {
+        $ticket = $invoice->bei_ticket;
+
+        if (in_array($response['estado'], ["INVOICE_STATE_IN_QUEUE",'INVOICE_STATE_QUEUE_PENDING', "INVOICE_REVOCATION_STATE_IN_QUEUE"])) {
+            throw new Exception("Factura " . $ticket . " en estado " . $response['estado'] . " aun en espera, volviendo a la cola.");
+        }
+
 
         if ($invoice->notRevocated() ) {
-            // if not send to revocate, then wait for emission to be complete
-
-            if ($response['estado'] == "INVOICE_STATE_IN_QUEUE" || $response['estado'] == 'INVOICE_STATE_QUEUE_PENDING') {
-                throw new Exception("Factura " . $this->ticket . " en estado " . $response['estado'] . " aun en espera, volviendo a la cola.");
-            }
 
             if ($invoice->isInProgress()) {
                 $invoice->markCompleteEmission();
+                event(new InvoiceAccepted(ticket: $ticket, status: 690, meta:[]));
             }
 
             if ($response['estado'] == "INVOICE_STATE_SENT_TO_SIN_INVALID" ) {
-                throw new Exception("CODE_902_EMISSION");
+                BeiOfflineInvoiceTracking::remove($ticket);
+                event(new InvoiceRejected(ticket: $ticket,status: 902,meta:["description" => "" , "errors" => $this->getErrorRejection($response)]));
             }
 
         }else {
-            // in the other hand, wait for revocation to be complete
-            if ($response['estado'] == "INVOICE_REVOCATION_STATE_IN_QUEUE") {
-                throw new Exception("Factura " . $this->ticket . " en estado " . $response['estado'] . " aun en espera, volviendo a la cola.");
-            }
+
             //revocation
             if( isset($response['errores']) && is_array($response['errores']) && !empty($response['errores']) ) {
                 // case in which invoice was used by final client.
@@ -117,14 +110,13 @@ class InvoiceDetailService
                 );
 
                 if (!empty($error_revocation_invoice)) {
-                    throw new Exception("CODE_997_REVOCATION");
-
+                    event(new InvoiceRevocationRejected(ticket:$ticket, status:690, meta:[ "description" =>"Anulación Rechazada factura consolidada ó usada."]));
                 }
             }
 
             if ($invoice->isInProgressRevocation()) {
                 $invoice->markCompleteRevocation();
-               // event revocation
+                event(new InvoiceRevocated(ticket: $ticket,status: 691,meta:[]));
             }
 
         }
@@ -144,7 +136,7 @@ class InvoiceDetailService
             );
 
             if (!empty($error)) {
-                return "La factura contine caracteres no válidos. Contáctese con soporte técnico.";
+                return "La factura contiene caracteres no válidos. Revise los datos";
             }
         }
 

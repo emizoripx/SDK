@@ -161,7 +161,6 @@ class BeiInvoice extends Model
                 'sucursal' => isset($data['sucursal']) ? $data['sucursal'] :"",
             ]
         ;
-        info("termina update field");
 
         $this->saveQuietly();
     }

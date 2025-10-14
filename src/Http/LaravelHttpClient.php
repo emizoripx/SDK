@@ -2,12 +2,14 @@
 namespace Emizor\SDK\Http;
 
 use Emizor\SDK\Contracts\HttpClientInterface;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 class LaravelHttpClient implements HttpClientInterface
 {
 
     protected ?string $token = null;
+    private Response $response;
 
     public function __construct() {
         $this->client = Http::acceptJson();
@@ -25,51 +27,50 @@ class LaravelHttpClient implements HttpClientInterface
         return $this;
     }
 
-    public function get(string $uri, array $options = []): array
+    public function get(string $uri, array $options = []): void
     {
-        return $this->request('GET', $uri, $options);
+        $this->request('GET', $uri, $options);
     }
 
-    public function post(string $uri, array $data = [], array $options = []): array
+    public function post(string $uri, array $data = [], array $options = []): void
     {
-        return $this->request('POST', $uri, $data);
+        $this->request('POST', $uri, $data);
     }
 
-    public function put(string $uri, array $data = [], array $options = []): array
+    public function put(string $uri, array $data = [], array $options = []): void
     {
-        return $this->request('PUT', $uri, $data);
+        $this->request('PUT', $uri, $data);
     }
 
-    public function delete(string $uri, array $data = [], array $options = []): array
+    public function delete(string $uri, array $data = [], array $options = []): void
     {
-        return $this->request('DELETE', $uri, $data);
+        $this->request('DELETE', $uri, $data);
     }
 
-    protected function request(string $method, string $uri, array $data = []): array
+    protected function request(string $method, string $uri, array $data = []): void
     {
-      /*  $this->client = $this->client->beforeSending(function ($request, $options) use ($method, $data) {
-            $url = (string) $request->getUri();
-            $headers = $request->getHeaders();
-            $curl = "curl -X $method '$url'";
-            if (in_array($method, ['POST', 'PUT', 'DELETE']) && !empty($data)) {
-                $body = is_array($data) ? json_encode($data) : $data;
-                $curl .= " -d '$body'";
-            }
-            foreach ($headers as $name => $values) {
-                foreach ($values as $value) {
-                    $curl .= " -H '$name: $value'";
-                }
-            }
-            info("CURL: $curl");
-        });*/
+
         $response = match ($method) {
             'GET' => $this->client->get($uri, $data),
             'POST' => $this->client->post($uri, $data),
             'PUT' => $this->client->put($uri, $data),
             'DELETE' => $this->client->delete($uri, $data),
         };
-
-        return $response->json() ?? [];
+        $this->setResponse($response);
     }
 
+    private function setResponse(Response $response): void
+    {
+        $this->response = $response;
+    }
+
+    public function getResponse(): array
+    {
+        return $this->response->json() ?? [];
+    }
+
+    public function getStatus(): int
+    {
+        return $this->response->status();
+    }
 }
