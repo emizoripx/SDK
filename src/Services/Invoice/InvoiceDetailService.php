@@ -65,7 +65,7 @@ class InvoiceDetailService
                 return;
 
             } catch (\Throwable $th) {
-                throw $th;
+                info("error " . $th->getMessage());
             }
 
         } else {
