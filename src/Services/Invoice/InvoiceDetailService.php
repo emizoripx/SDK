@@ -39,6 +39,7 @@ class InvoiceDetailService
             $this->handleSuccessfulResponse($invoice, $response, $id_log_response);
         }catch (\Throwable $th) {
             info("Emit errors : TICKET: " . $ticket . " ERROR: ". $th->getMessage() , [$response]);
+            throw $th;
         }
     }
 
@@ -64,6 +65,7 @@ class InvoiceDetailService
 
             } catch (\Throwable $th) {
                 info("error " . $th->getMessage());
+                throw $th;
             }
 
         } else {
