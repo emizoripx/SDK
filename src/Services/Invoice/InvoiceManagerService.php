@@ -46,7 +46,7 @@ class InvoiceManagerService implements InvoiceManagerContract
         info("===================>validating nit");
         ValidateNit::dispatchSync($ticket);
         info("===================>emiting invoice");
-        Emit::dispatchSync($ticket);
+        Emit::dispatch($ticket);
     }
 
     public function revokeInvoice(string $ticket, int $revocationReasonCode):void
