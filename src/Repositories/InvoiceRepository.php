@@ -28,7 +28,7 @@ class InvoiceRepository
         return $new['bei_ticket'];
     }
 
-    public function findByTicket($ticket):BeiInvoice
+    public function findByTicket($ticket):BeiInvoice|null
     {
         return BeiInvoice::where("bei_ticket", $ticket)->first();
     }
