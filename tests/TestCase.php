@@ -33,6 +33,8 @@ abstract class TestCase extends BaseTestCase
             'database' => ':memory:',
             'prefix' => '',
         ]);
+
+        $app['config']->set('queue.default', 'sync');
     }
 
     protected function setUp(): void

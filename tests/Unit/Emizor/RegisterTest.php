@@ -36,7 +36,6 @@ it('registers a new account successfully', function () {
         'id' => $accountId,
         'bei_client_id' => '12345678',
         'bei_host' => 'PILOTO',
-        'bei_token' => 'fake-mock-token',
     ]);
 });
 

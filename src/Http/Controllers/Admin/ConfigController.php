@@ -6,6 +6,7 @@ use Illuminate\Routing\Controller;
 use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Repositories\ParametricRepository;
 use Illuminate\Http\Request;
+use Emizor\SDK\Facades\EmizorSdk;
 
 
 class ConfigController extends Controller
@@ -107,5 +108,94 @@ class ConfigController extends Controller
     {
         $accounts = BeiAccount::all();
         return view('emizor::admin.accounts.index', compact('accounts'));
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'client_id' => 'required|string',
+            'client_secret' => 'required|string',
+            'environment' => 'required|in:piloto,production',
+            'owner_type' => 'nullable|string',
+            'owner_id' => 'nullable|string',
+        ]);
+
+        try {
+            $accountId = EmizorSdk::register(function ($builder) use ($request) {
+                $builder->setClientId($request->client_id)
+                        ->setClientSecret($request->client_secret);
+
+                if ($request->environment === 'production') {
+                    $builder->useProductionEnvironment();
+                } else {
+                    $builder->usePilotoEnvironment();
+                }
+
+                if ($request->owner_type && $request->owner_id) {
+                    $builder->setOwnerType($request->owner_type)
+                            ->setOwnerId($request->owner_id);
+                }
+            });
+
+            return redirect()->route('emizor.admin.accounts.index')->with('success', 'Account registered successfully with ID: ' . $accountId);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Registration failed: ' . $e->getMessage());
+        }
+    }
+
+    public function setDefaults(Request $request, string $accountId)
+    {
+        $account = BeiAccount::find($accountId);
+        if (!$account) {
+            return redirect()->back()->with('error', 'Account not found');
+        }
+
+        $request->validate([
+            'type_document' => 'nullable|string',
+            'branch' => 'nullable|integer|min:0|max:20',
+            'pos' => 'nullable|integer|min:0|max:100',
+            'payment_method' => 'nullable|string',
+            'reason_revocation' => 'nullable|in:1,3',
+            'sin_product_code' => 'nullable|string',
+            'activity_code' => 'nullable|string',
+        ]);
+
+        $parametricRepo = new ParametricRepository();
+
+        // Validate parametrics
+        $errors = [];
+        if ($request->type_document && (!$parametricRepo->hasType('tipos-documento-de-identidad', $accountId) || empty($parametricRepo->list('tipos-documento-de-identidad', $accountId, $request->type_document)))) {
+            $errors[] = 'Invalid type document';
+        }
+        if ($request->payment_method && (!$parametricRepo->hasType('metodos-de-pago', $accountId) || empty($parametricRepo->list('metodos-de-pago', $accountId, $request->payment_method)))) {
+            $errors[] = 'Invalid payment method';
+        }
+        if ($request->sin_product_code && (!$parametricRepo->hasType('productos-sin', $accountId) || empty($parametricRepo->list('productos-sin', $accountId, $request->sin_product_code)))) {
+            $errors[] = 'Invalid SIN product code';
+        }
+        if ($request->activity_code && (!$parametricRepo->hasType('actividades', $accountId) || empty($parametricRepo->list('actividades', $accountId, $request->activity_code)))) {
+            $errors[] = 'Invalid activity code';
+        }
+
+        if (!empty($errors)) {
+            return redirect()->back()->with('error', 'Validation failed: ' . implode(', ', $errors));
+        }
+
+        try {
+            $api = EmizorSdk::for($account);
+            $api->setDefaults(function ($builder) use ($request) {
+                if ($request->type_document) $builder->setTypeDocument($request->type_document);
+                if ($request->branch !== null) $builder->setBranch($request->branch);
+                if ($request->pos !== null) $builder->setPos($request->pos);
+                if ($request->payment_method) $builder->setPaymentMethod($request->payment_method);
+                if ($request->reason_revocation) $builder->setReasonRevocation($request->reason_revocation);
+                if ($request->sin_product_code) $builder->setSinProductCode($request->sin_product_code);
+                if ($request->activity_code) $builder->setActivityCode($request->activity_code);
+            });
+
+            return redirect()->back()->with('success', 'Defaults updated successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to update defaults: ' . $e->getMessage());
+        }
     }
 }

@@ -19,7 +19,7 @@ class TokenManager
 
     public function generateAndSaveToken(BeiAccount $beiAccount): void
     {
-        $response = $this->tokenService->generate($beiAccount->bei_host, $beiAccount->client_id, $beiAccount->client_secret);
+        $response = $this->tokenService->generate($beiAccount->bei_host, $beiAccount->bei_client_id, $beiAccount->bei_client_secret);
 
         $this->repository->saveToken($beiAccount->id, $response["token"],$response["expires_at"]);
     }

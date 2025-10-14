@@ -8,11 +8,14 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('emizor-admin')->middleware(['web'])->group(function () {
     // Accounts
     Route::get('accounts', [ConfigController::class, 'accounts'])->name('emizor.admin.accounts');
+    Route::post('accounts/register', [ConfigController::class, 'register'])->name('emizor.admin.accounts.register');
+    Route::post('accounts/{id}/set-defaults', [ConfigController::class, 'setDefaults'])->name('emizor.admin.accounts.set-defaults');
 
     // Invoices
     Route::get('invoices', [InvoiceController::class, 'index'])->name('emizor.admin.invoices.index');
     Route::get('invoices/{id}', [InvoiceController::class, 'show'])->name('emizor.admin.invoices.show');
     Route::post('invoices/{id}/fetch-pdf', [InvoiceController::class, 'fetchPdf'])->name('emizor.admin.invoices.fetch-pdf');
+    Route::post('invoices/{id}/revocate', [InvoiceController::class, 'revocate'])->name('emizor.admin.invoices.revocate');
 
     // Configuration
     Route::get('config', [ConfigController::class, 'index'])->name('emizor.admin.config.index');

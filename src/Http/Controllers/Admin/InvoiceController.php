@@ -6,6 +6,7 @@ use Illuminate\Routing\Controller;
 use Emizor\SDK\Models\BeiInvoice;
 use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Jobs\FetchInvoicePdf;
+use Emizor\SDK\Jobs\Revocate;
 use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
@@ -58,5 +59,25 @@ class InvoiceController extends Controller
         }
 
         return redirect()->back()->with('info', 'PDF is already available.');
+    }
+
+    public function revocate(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|in:1,3',
+        ]);
+
+        $invoice = BeiInvoice::findOrFail($id);
+
+        if ($invoice->isInProgress() || $invoice->isCompleteRevocation() || $invoice->isInProgressRevocation()) {
+            return redirect()->back()->with('error', 'Invoice cannot be revoked at this time.');
+        }
+
+        try {
+            Revocate::dispatch($invoice->getTicket(), (int) $request->reason);
+            return redirect()->back()->with('success', 'Revocation request has been queued.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to queue revocation: ' . $e->getMessage());
+        }
     }
 }
