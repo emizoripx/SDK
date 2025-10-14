@@ -60,7 +60,9 @@ class EmizorServiceProvider extends ServiceProvider
 
             __DIR__.'/../config/emizor_sdk.php' => config_path('emizor_sdk.php'),
 
-        ]);
+            __DIR__.'/../resources/views' => resource_path('views/vendor/emizor'),
+
+        ], 'views');
 
         BeiAccount::observe(BeiAccountObserver::class);
 

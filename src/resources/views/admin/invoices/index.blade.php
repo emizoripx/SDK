@@ -8,9 +8,9 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Invoices</h1>
+        <h1>Facturas</h1>
         @if($account)
-            <h2>For Account: {{ $account->id }} ({{ $account->bei_client_id }})</h2>
+            <h2>Cuenta: {{ $account->id }} ({{ $account->bei_client_id }})</h2>
             <a href="{{ route('emizor.admin.accounts') }}" class="btn btn-secondary mb-3">Back to Accounts</a>
         @endif
 
@@ -18,7 +18,7 @@
         <form method="GET" class="mb-4">
             <div class="row">
                 <div class="col-md-3">
-                    <label for="status" class="form-label">Status</label>
+                    <label for="status" class="form-label">Estados</label>
                     <select name="status" id="status" class="form-select">
                         <option value="">All</option>
                         <option value="none" {{ request('status') == 'none' ? 'selected' : '' }}>None</option>
@@ -36,7 +36,7 @@
                     <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
                 </div>
             </div>
         </form>
@@ -47,11 +47,11 @@
                 <thead>
                     <tr>
                         <th>Ticket</th>
-                        <th>Account</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Emission Date</th>
-                        <th>Actions</th>
+                        <th>Cuenta</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                        <th>Fecha Emisión</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,9 +67,10 @@
                             </td>
                             <td>{{ $invoice->bei_emission_date ? $invoice->bei_emission_date->format('Y-m-d H:i') : 'N/A' }}</td>
                              <td>
-                                 <a href="{{ route('emizor.admin.invoices.show', $invoice->id) }}" class="btn btn-sm btn-info">View</a>
-                                 @if($additional = $invoice->getAdditional() and isset($additional->pdf_url) and !empty($additional->pdf_url))
-                                     <a href="{{ $additional->pdf_url }}" target="_blank" class="btn btn-sm btn-success">PDF</a>
+                                 <a href="{{ route('emizor.admin.invoices.show', $invoice->id) }}" class="btn btn-sm btn-info">Ver</a>
+
+                                 @if(isset( $invoice->getAdditional()['pdf_url'] ) && $invoice->getAdditional()['pdf_url'] != "")
+                                    <a href="{{ $invoice->getAdditional()['pdf_url'] }}" target="_blank" class="btn btn-sm btn-success">PDF</a>
                                  @endif
                              </td>
                         </tr>
@@ -82,10 +83,9 @@
             </table>
         </div>
 
-        <!-- Paginación -->
-        {{ $invoices->appends(request()->query())->links() }}
+        {{ $invoices->links() }}
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

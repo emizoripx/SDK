@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1>EMIZOR Accounts</h1>
+        <h1>EMIZOR cuentas</h1>
         <p>Selecciona una cuenta para ver su configuración y paramétricos específicos.</p>
 
         @if($accounts->count() > 0)
