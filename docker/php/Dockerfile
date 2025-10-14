@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     unzip \
     git \
-    && docker-php-ext-install pdo pdo_mysql
+    && docker-php-ext-install pdo pdo_mysql pdo_sqlite
 
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

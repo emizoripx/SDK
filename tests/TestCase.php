@@ -16,7 +16,7 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Environment setup for tests with MySQL
+     * Environment setup for tests with SQLite in memory
      */
     protected function getEnvironmentSetUp($app)
     {
@@ -26,20 +26,12 @@ abstract class TestCase extends BaseTestCase
             'Tests\Models\Company' => 'Tests\Models\Company',
         ]);
 
-        $app['config']->set('database.default', 'mysql');
+        $app['config']->set('database.default', 'sqlite');
 
-        $app['config']->set('database.connections.mysql', [
-            'driver' => 'mysql',
-            'host' => env('DB_HOST', 'mysql'),
-            'port' => env('DB_PORT', 3306),
-            'database' => env('DB_DATABASE', 'emizor_test'),
-            'username' => env('DB_USERNAME', 'dev'),
-            'password' => env('DB_PASSWORD', 'devpass'),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
+        $app['config']->set('database.connections.sqlite', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
             'prefix' => '',
-            'strict' => true,
-            'engine' => null,
         ]);
     }
 
