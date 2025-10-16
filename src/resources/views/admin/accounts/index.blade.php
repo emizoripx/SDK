@@ -3,40 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accounts - EMIZOR Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>EMIZOR Accounts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-5">
-        <h1>EMIZOR cuentas</h1>
-        <p>Selecciona una cuenta para ver su configuración y paramétricos específicos.</p>
+<div class="container">
+    <h1>Listado de cuentas</h1>
 
-        @if($accounts->count() > 0)
-            <div class="row">
-                @foreach($accounts as $account)
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ $account->id }}</h5>
-                                <p class="card-text">
-                                    <strong>Client ID:</strong> {{ $account->bei_client_id }}<br>
-                                    <strong>Host:</strong> {{ $account->bei_host }}<br>
-                                    <strong>Enabled:</strong> {{ $account->bei_enable ? 'Yes' : 'No' }}<br>
-                                    <strong>Token:</strong> {{ $account->bei_token ? 'Present' : 'Missing' }}
-                                </p>
-                                <a href="{{ route('emizor.admin.config.index', ['account_id' => $account->id]) }}" class="btn btn-primary">View Config</a>
-                                <a href="{{ route('emizor.admin.config.check', ['account_id' => $account->id]) }}" class="btn btn-secondary">Check Completeness</a>
-                                <a href="{{ route('emizor.admin.invoices.index', ['account_id' => $account->id]) }}" class="btn btn-info">View Invoices</a>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div class="alert alert-info">No accounts found. Register an account first.</div>
-        @endif
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
+    <div class="row">
+        <div class="col-md-8">
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Client ID</th>
+                        <th>Environment</th>
+                        <th>Token</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($accounts as $account)
+                        <tr>
+                            <td>{{ $account->id }}</td>
+                            <td>{{ $account->bei_client_id }}</td>
+                            <td>{{ $account->bei_host }}</td>
+                            <td>{{ $account->bei_token ? 'Yes' : 'No' }}</td>
+                            <td>
+                                <a href="{{ route('emizor.admin.config.index', ['account_id' => $account->id]) }}" class="btn btn-sm btn-primary">Configure</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-4">
+            <h2>Register New Account</h2>
+            <form action="{{ route('emizor.admin.accounts.register') }}" method="POST">
+                @csrf
+                <div class="form-group">
+                    <label for="client_id">Client ID</label>
+                    <input type="text" class="form-control" id="client_id" name="client_id" required>
+                </div>
+                <div class="form-group">
+                    <label for="client_secret">Client Secret</label>
+                    <input type="password" class="form-control" id="client_secret" name="client_secret" required>
+                </div>
+                <div class="form-group">
+                    <label for="environment">Environment</label>
+                    <select class="form-control" id="environment" name="environment" required>
+                        <option value="piloto">Piloto</option>
+                        <option value="production">Production</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="owner_type">Owner Type </label>
+                    <input type="text" class="form-control" id="owner_type" name="owner_type">
+                </div>
+                <div class="form-group">
+                    <label for="owner_id">Owner ID </label>
+                    <input type="text" class="form-control" id="owner_id" name="owner_id">
+                </div>
+                <button type="submit" class="btn btn-success">Registrar</button>
+            </form>
+        </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

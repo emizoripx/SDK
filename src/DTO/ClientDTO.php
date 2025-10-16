@@ -6,7 +6,6 @@ use Emizor\SDK\Enums\ParametricType;
 use Emizor\SDK\Rules\CheckParametricRule;
 use Illuminate\Support\Facades\Validator;
 use Emizor\SDK\Exceptions\EmizorApiDefaultsValidationException;
-use Emizor\SDK\Enums\EmizorApiDocumentNumberType;
 
 final class ClientDTO
 {

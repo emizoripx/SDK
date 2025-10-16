@@ -2,15 +2,15 @@
 namespace Emizor\SDK\Builders;
 
 use Emizor\SDK\DTO\DefaultsDTO;
+use Emizor\SDK\Enums\InvoiceType;
 
 class DefaultsBuilder
 {
     protected array $data = [];
 
-    public function setTypeDocument(string $type = null): self
+    public function useCompraVentaDocumentType()
     {
-        $this->data['type_document'] = $type;
-        return $this;
+        $this->data['type_document'] = InvoiceType::COMPRA_VENTA ;
     }
 
     public function setBranch(string $branch=null): self
@@ -51,7 +51,6 @@ class DefaultsBuilder
 
     public function build(): DefaultsDTO
     {
-        // Al crear el DTO, se activará la validación en su constructor.
         return new DefaultsDTO(
             $this->data['type_document'] ?? null,
             $this->data['branch'] ?? null,

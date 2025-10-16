@@ -6,19 +6,22 @@ use Closure;
 use Emizor\SDK\DTO\ClientDTO;
 use Emizor\SDK\DTO\InvoiceDetailDTO;
 use Emizor\SDK\DTO\InvoiceDTO;
+use Emizor\SDK\Enums\InvoiceType;
 
 class InvoiceBuilder
 {
     protected ClientDTO $client;
     protected array $details = [];
     protected array $defaults = [];
+    protected array $homologatedProducts = [];
     protected float $amount = 0.00;
     protected float $discount = 0.00;
     protected ?string $ticket = null;
-    public function __construct(string $ticket, array $defaults = [])
+    public function __construct(string $ticket, array $defaults = [], array $homologatedProducts = [])
     {
         $this->defaults = $defaults;
         $this->ticket = $ticket;
+        $this->homologatedProducts = $homologatedProducts;
     }
 
     public function setClient(ClientDTO $client): self
@@ -30,23 +33,24 @@ class InvoiceBuilder
     public function setDetails(array $details): self
     {
         foreach ($details as $detail) {
+            $homologatedProduct = collect($this->homologatedProducts)->where("bei_product_code",$detail["product_code"])->first();
+
             $this->details[] = new InvoiceDetailDTO(
                 productCode: $detail["product_code"]??"",
                 description: $detail["description"]??"",
                 quantity: $detail["quantity"]??0,
                 unitPrice: $detail["unit_price"]??0,
-                unitCode: $detail["unit_code"]??"",
-                sinProductCode: $detail["sin_product_code"] ?? ($this->defaults["sin_product_code"]??""),
-                activityCode: $detail["activity_code"]?? ($this->defaults["activity_code"]??"")
+                unitCode: $homologatedProduct["bei_unit_code"] ?? "1",
+                sinProductCode: $homologatedProduct["bei_sin_product_code"] ?? ($this->defaults["sin_product_code"]??""),
+                activityCode: $homologatedProduct["bei_activity_code"]?? ($this->defaults["activity_code"]??"")
             );
         }
         return $this;
     }
 
-    public function setTypeDocument(string $type): self
+    public function useCompraVentaDocumentType()
     {
-        $this->defaults['type_document'] = $type;
-        return $this;
+        $this->data['type_document'] = InvoiceType::COMPRA_VENTA ;
     }
 
     public function setBranch(string $branch): self
