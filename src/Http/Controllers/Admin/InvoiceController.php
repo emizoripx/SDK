@@ -16,19 +16,19 @@ class InvoiceController extends Controller
         $query = BeiInvoice::with('bei_account');
 
         // Filtros opcionales
-        if ($request->has('status') && $request->status !== '') {
+        if ($request->has('status') && $request->status != '') {
             $query->where('bei_step_emission', $request->status);
         }
 
-        if ($request->has('date_from')) {
+        if ($request->has('date_from') &&  $request->date_from != '') {
             $query->whereDate('bei_emission_date', '>=', $request->date_from);
         }
 
-        if ($request->has('date_to')) {
+        if ($request->has('date_to') &&  $request->date_to != '') {
             $query->whereDate('bei_emission_date', '<=', $request->date_to);
         }
 
-        if ($request->has('account_id')) {
+        if ($request->has('account_id') &&  $request->account_id != '') {
             $query->where('bei_account_id', $request->account_id);
         }
 

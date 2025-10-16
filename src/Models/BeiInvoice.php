@@ -142,7 +142,6 @@ class BeiInvoice extends Model
     public function markCompleteRevocation()
     {
         $this->bei_step_revocation = 'complete';
-        $this->service()->handleCancellation()->save();
         $this->saveQuietly();
     }
 

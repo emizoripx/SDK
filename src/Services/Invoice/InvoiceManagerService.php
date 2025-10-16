@@ -14,18 +14,24 @@ use Emizor\SDK\Jobs\ValidateNit;
 use Emizor\SDK\Mappers\BeiInvoiceMapper;
 use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Repositories\AccountRepository;
+use Emizor\SDK\Repositories\HomologateProductRepository;
 use Emizor\SDK\Repositories\InvoiceRepository;
 
+/**
+ * @property HomologateProductRepository $homologateProductRespository
+ */
 class InvoiceManagerService implements InvoiceManagerContract
 {
     protected HttpClientInterface $http;
     protected InvoiceRepository $invoiceRepository;
     private AccountRepository $repositoryAccount;
+    private HomologateProductRepository $homologateProductRepository;
 
-    public function __construct( InvoiceRepository $invoiceRepository, AccountRepository $repositoryAccount)
+    public function __construct( InvoiceRepository $invoiceRepository, AccountRepository $repositoryAccount, HomologateProductRepository $homologateProductRepository)
     {
         $this->invoiceRepository = $invoiceRepository;
         $this->repositoryAccount = $repositoryAccount;
+        $this->homologateProductRepository = $homologateProductRepository;
     }
 
 
@@ -35,8 +41,8 @@ class InvoiceManagerService implements InvoiceManagerContract
         if (empty($beiInvoice)) { // TODO: refactor logic for retry same ticket
 
             $defaults = $this->repositoryAccount->getDefaults($beiAccount->id);
-
-            $builder = new InvoiceBuilder($ticket, $defaults);
+            $homologatedProducts = $this->homologateProductRepository->list($beiAccount->id);
+            $builder = new InvoiceBuilder($ticket, $defaults, $homologatedProducts);
             $callback($builder, $ticket);
 
             $payload = $builder->build();

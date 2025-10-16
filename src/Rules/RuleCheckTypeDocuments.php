@@ -12,10 +12,7 @@ class RuleCheckTypeDocuments implements Rule
     public function passes($attribute, $value): bool
     {
         $this->attribute = $attribute;
-
-        // Convierte los casos en un array de valores string
         $allowed = array_map(fn($case) => $case->value, InvoiceType::cases());
-
         return in_array($value, $allowed, true);
     }
 
