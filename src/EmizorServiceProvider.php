@@ -24,6 +24,7 @@ use Emizor\SDK\Repositories\InvoiceRepository;
 use Emizor\SDK\Repositories\ParametricRepository;
 use Emizor\SDK\Services\EmizorApiService;
 use Emizor\SDK\Services\EmizorManager;
+use Emizor\SDK\Services\EmizorTokenManager;
 use Emizor\SDK\Services\HomologateProductService;
 use Emizor\SDK\Services\Invoice\GetInvoiceDetailService;
 use Emizor\SDK\Services\Invoice\InvoiceEmissionService;
@@ -131,7 +132,7 @@ class EmizorServiceProvider extends ServiceProvider
             return new ParametricService($emizorApiHttp,  $app->make(ParametricRepository::class));
         });
         $this->app->bind(InvoiceManagerContract::class, function($app) {
-            return new InvoiceManagerService( $app->make(InvoiceRepository::class), $app->make(AccountRepository::class));
+            return new InvoiceManagerService( $app->make(InvoiceRepository::class), $app->make(AccountRepository::class), $app->make(HomologateProductRepository::class));
         });
         $this->app->bind(HomologateProductContract::class, function($app) {
             return new HomologateProductService(
@@ -146,13 +147,11 @@ class EmizorServiceProvider extends ServiceProvider
         });
         // Registra el alias del facade para register
         $this->app->bind('emizorsdk', function ($app) {
-            return new class($app->make(AccountRepository::class), $app->make(RegisterContract::class)) {
-                private $repository;
+            return new class( $app->make(RegisterContract::class)) {
                 private $registerService;
 
-                public function __construct($repository, $registerService)
+                public function __construct( $registerService)
                 {
-                    $this->repository = $repository;
                     $this->registerService = $registerService;
                 }
 
@@ -178,7 +177,7 @@ class EmizorServiceProvider extends ServiceProvider
 
                 public function for($owner)
                 {
-                    $credential = $owner->getEmizorCredentials();
+                    $credential = $owner instanceof BeiAccount ? $owner : $owner->getEmizorCredentials();
 
                     if (!$credential) {
                         throw new \Exception("No Emizor credentials found for this owner.");

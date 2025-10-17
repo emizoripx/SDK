@@ -24,16 +24,7 @@
             <form action="{{ route('emizor.admin.accounts.set-defaults', $account->id) }}" method="POST">
                 @csrf
                 <div class="form-group">
-                    <label for="type_document">Type Document</label>
-                    <select class="form-control" id="type_document" name="type_document">
-                        <option value="">Select</option>
-                        @foreach($globalParametrics['tipos-documento-de-identidad'] ?? [] as $item)
-                            <option value="{{ $item['bei_code'] }}" {{ ($account->bei_defaults['type_document'] ?? '') == $item['bei_code'] ? 'selected' : '' }}>{{ $item['bei_description'] }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="branch">Branch (0-20)</label>
+                    <label for="branch">Sucursal (0-20)</label>
                     <input type="number" class="form-control" id="branch" name="branch" min="0" max="20" value="{{ $account->bei_defaults['branch'] ?? '' }}">
                 </div>
                 <div class="form-group">

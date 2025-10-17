@@ -8,11 +8,11 @@
 </head>
 <body>
 <div class="container">
-    <h1>EMIZOR Configuration Check</h1>
+    <h1>Revisión de configuración</h1>
 
     <div class="row">
         <div class="col-md-6">
-            <h2>Status</h2>
+            <h2>Estado</h2>
             <ul class="list-group">
                 @foreach($checks as $key => $value)
                     @if(is_array($value))
@@ -20,7 +20,7 @@
                             <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
                             <ul>
                                 @foreach($value as $subKey => $subValue)
-                                    <li>{{ ucfirst(str_replace('-', ' ', $subKey)) }}: <span class="badge badge-{{ $subValue ? 'success' : 'danger' }}">{{ $subValue ? 'Yes' : 'No' }}</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">{{ ucfirst(str_replace('-', ' ', $subKey)) }}: <span class="badge badge-{{ $subValue ? 'success' : 'danger' }}">{{ $subValue ? 'Yes' : 'No' }}</span></li>
                                 @endforeach
                             </ul>
                         </li>
@@ -34,16 +34,16 @@
             </ul>
         </div>
         <div class="col-md-6">
-            <h2>Overall Status</h2>
+            <h2>Estado Global</h2>
             @if($isComplete)
                 <div class="alert alert-success">
-                    <h4>Configuration Complete!</h4>
-                    <p>All checks passed. Your EMIZOR setup is ready.</p>
+                    <h4>Configuración completa!</h4>
+                    <p>Listo para usar.</p>
                 </div>
             @else
                 <div class="alert alert-warning">
-                    <h4>Configuration Incomplete</h4>
-                    <p>Some checks failed. Please review and complete the setup.</p>
+                    <h4>Configuración incompleta</h4>
+                    <p>Algunas configuraciones faltan. Porfavor revisa y comleta la configuración.</p>
                 </div>
             @endif
         </div>

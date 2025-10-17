@@ -48,9 +48,10 @@ class InvoiceBuilder
         return $this;
     }
 
-    public function useCompraVentaDocumentType()
+    public function useCompraVentaDocumentType():self
     {
-        $this->data['type_document'] = InvoiceType::COMPRA_VENTA ;
+        $this->defaults['type_document'] = InvoiceType::COMPRA_VENTA->value ;
+        return $this;
     }
 
     public function setBranch(string $branch): self

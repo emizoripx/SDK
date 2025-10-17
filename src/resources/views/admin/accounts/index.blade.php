@@ -28,7 +28,7 @@
                         <th>Client ID</th>
                         <th>Environment</th>
                         <th>Token</th>
-                        <th>Actions</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,9 +37,11 @@
                             <td>{{ $account->id }}</td>
                             <td>{{ $account->bei_client_id }}</td>
                             <td>{{ $account->bei_host }}</td>
-                            <td>{{ $account->bei_token ? 'Yes' : 'No' }}</td>
+                            <td>{{ $account->bei_token ? 'Si' : 'No' }}</td>
                             <td>
-                                <a href="{{ route('emizor.admin.config.index', ['account_id' => $account->id]) }}" class="btn btn-sm btn-primary">Configure</a>
+                                <a href="{{ route('emizor.admin.config.index', ['account_id' => $account->id]) }}" class="btn btn-sm btn-primary">Configurar</a>
+                                <a href="{{ route('emizor.admin.config.check', ['account_id' => $account->id]) }}" class="btn btn-sm btn-primary">Revisar</a>
+                                <a href="{{ route('emizor.admin.invoices.index', ['account_id' => $account->id]) }}" class="btn btn-sm btn-primary">Facturas</a>
                             </td>
                         </tr>
                     @endforeach
@@ -48,7 +50,7 @@
         </div>
 
         <div class="col-md-4">
-            <h2>Register New Account</h2>
+            <h2>Registro de nueva cuenta</h2>
             <form action="{{ route('emizor.admin.accounts.register') }}" method="POST">
                 @csrf
                 <div class="form-group">
@@ -60,7 +62,7 @@
                     <input type="password" class="form-control" id="client_secret" name="client_secret" required>
                 </div>
                 <div class="form-group">
-                    <label for="environment">Environment</label>
+                    <label for="environment">Entorno</label>
                     <select class="form-control" id="environment" name="environment" required>
                         <option value="piloto">Piloto</option>
                         <option value="production">Production</option>
@@ -68,7 +70,11 @@
                 </div>
                 <div class="form-group">
                     <label for="owner_type">Owner Type </label>
-                    <input type="text" class="form-control" id="owner_type" name="owner_type">
+                    <select class="form-control" id="owner_type" name="owner_type" required>
+                        @foreach(config("emizor_sdk.owners") as $type)
+                            <option value="{{$type}}">{{$type}}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="owner_id">Owner ID </label>

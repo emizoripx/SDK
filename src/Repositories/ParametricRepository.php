@@ -49,12 +49,12 @@ class ParametricRepository
 
     }
 
-    public function atleastOne(string $accountId): bool
+    public static function hasParametricSynced(string $accountId): bool
     {
 
-        return BeiGlobalParametric::distinct('bei_type')->count('bei_type') != 4
+        return BeiGlobalParametric::distinct('bei_type')->count('bei_type') == 4
             && BeiSpecificParametric::where('bei_account_id', $accountId)
-                ->distinct('bei_type')->count('bei_type') != 3;
+                ->distinct('bei_type')->count('bei_type') == 3;
 
     }
 

@@ -2,6 +2,7 @@
 
 namespace Emizor\SDK\Models;
 
+use Emizor\SDK\Repositories\ParametricRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
@@ -55,9 +56,22 @@ class BeiAccount extends Model
         return $this->morphTo();
     }
 
-    public function isCompletelySetup()
+    public function checkSetup(): void
     {
-        return $this->bei_enable;
+        $this->checkToken();
+
+        $this->checkParametric();
     }
 
+    public function checkParametric(): void
+    {
+        if (!ParametricRepository::hasParametricSynced($this->id))
+            throw new \Exception("No parametrics found, please complete parametrics sync.");
+    }
+
+    public function checkToken(): void
+    {
+        if (empty($this->bei_token))
+            throw new \Exception("No token found, please refresh token before continue.");
+    }
 }

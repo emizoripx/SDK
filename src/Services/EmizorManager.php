@@ -29,21 +29,29 @@ class EmizorManager
 
     public function emitInvoice(Callable $callback, string $ticket): void
     {
+        $this->credential->checkSetup();
+
         $this->invoiceManagerService->createAndEmitInvoice($callback, $ticket, $this->credential);
     }
 
     public function revokeInvoice(string $ticket, int $revocationReasonCode):void
     {
+        $this->credential->checkSetup();
+
         $this->invoiceManagerService->revokeInvoice($ticket, $revocationReasonCode);
     }
 
     public function getParametric(string $type)
     {
+        $this->credential->checkToken();
+
         return $this->parametricService->getParametric($this->credential, $type);
     }
 
     public function syncParametrics(array $types):void
     {
+        $this->credential->checkToken();
+
         foreach ($types as $type) {
             $this->parametricService->syncAndSaveParametric($this->credential, $type);
         }
@@ -51,6 +59,7 @@ class EmizorManager
 
     public function setDefaults(callable $callback)
     {
+        $this->credential->checkSetup();
         $builder = new DefaultsBuilder();
         $callback($builder);
         $defaultsDTO = $builder->build();
@@ -64,6 +73,7 @@ class EmizorManager
 
     public function homologateProduct(array $products)
     {
+        $this->credential->checkSetup();
         $this->homologateService->homologate($products, $this->credential->id);
     }
 

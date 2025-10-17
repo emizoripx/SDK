@@ -6,7 +6,7 @@ use Illuminate\Routing\Controller;
 use Emizor\SDK\Models\BeiAccount;
 use Emizor\SDK\Repositories\ParametricRepository;
 use Illuminate\Http\Request;
-use Emizor\SDK\Facades\EmizorSdk;
+use Emizor\SDK\Facade\EmizorSdk;
 
 
 class ConfigController extends Controller
@@ -48,10 +48,9 @@ class ConfigController extends Controller
         $account = BeiAccount::find($accountId);
 
         $checks = [
-            'account_exists' => !is_null($account),
-            'account_enabled' => $account ? $account->bei_enable : false,
-            'defaults_set' => $account ? !is_null($account->bei_defaults) : false,
-            'token_present' => $account ? !is_null($account->bei_token) : false,
+            'cuenta_existente' => !is_null($account),
+            'parametros_por_defecto' => $account ? !is_null($account->bei_defaults) : false,
+            'existe_token' => $account ? !is_null($account->bei_token) : false,
         ];
 
         $parametricRepo = new ParametricRepository();
@@ -77,8 +76,8 @@ class ConfigController extends Controller
             }
         }
 
-        $checks['parametrics_complete'] = $parametricsComplete;
-        $checks['parametric_details'] = $parametricChecks;
+        $checks['parametricas_completas'] = $parametricsComplete;
+        $checks['detalle_de_parametricas'] = $parametricChecks;
 
         $isComplete = !in_array(false, array_filter($checks, fn($v) => !is_array($v)));
 
@@ -137,7 +136,7 @@ class ConfigController extends Controller
                 }
             });
 
-            return redirect()->route('emizor.admin.accounts.index')->with('success', 'Account registered successfully with ID: ' . $accountId);
+            return redirect()->route('emizor.admin.accounts')->with('success', 'Account registered successfully with ID: ' . $accountId);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Registration failed: ' . $e->getMessage());
         }
@@ -151,7 +150,6 @@ class ConfigController extends Controller
         }
 
         $request->validate([
-            'type_document' => 'nullable|string',
             'branch' => 'nullable|integer|min:0|max:20',
             'pos' => 'nullable|integer|min:0|max:100',
             'payment_method' => 'nullable|string',
