@@ -128,9 +128,30 @@ $parametric = $api->getParametric('actividades');
 $company = Company::find(1);
 $api = EmizorSdk::for($company);
 $api->setDefaults(function ($builder) {
-    $builder->setActivityCode('123')
-            ->setBranch(['code' => '001', 'name' => 'Main Branch']);
+    $builder->useCompraVentaDocumentType()
+            ->setActivityCode('461091')
+            ->setBranch('001')
+            ->setPos('001')
+            ->setPaymentMethod('1')
+            ->setSinProductCode('61191');
 });
+```
+
+### Homologate Products
+
+Before issuing invoices, homologate your products with fiscal codes:
+
+```php
+$products = [
+    [
+        'codigoProducto' => 'PROD001',
+        'descripcionProducto' => 'Producto de ejemplo',
+        'codigoActividad' => '620100',
+        'codigoProductoSin' => '83111'
+    ]
+];
+
+$api->homologateProduct($products);
 ```
 
 ### Issue Invoice
@@ -150,19 +171,21 @@ $client = new ClientDTO(
     'client@example.com'
 );
 
+// Use product codes that match your homologated products
 $api->issueInvoice(function ($builder) use ($client) {
     $builder->setClient($client)
             ->setDetails([
                 [
-                    'product_code' => '001',
-                    'description' => 'Product',
+                    'product_code' => 'PROD001', // Must match homologated product
+                    'description' => 'Producto de ejemplo',
                     'quantity' => 1,
-                    'unit_price' => 100,
+                    'unit_price' => 100.00,
                     'unit_code' => '1'
                 ]
             ])
+            ->useCompraVentaDocumentType()
             ->setPaymentMethod('efectivo')
-            ->setAmount(100);
+            ->setAmount(100.00);
 }, 'ticket-123');
 ```
 
@@ -346,9 +369,10 @@ The SDK fires the following events:
 
 - `InvoiceAccepted` - When invoice is accepted
 - `InvoiceRejected` - When invoice is rejected
-- `InvoiceInProcess` - When invoice is in process
 - `InvoiceRevocated` - When invoice is revocated
-- `InvoiceReverted` - When invoice is reverted
+- `InvoiceRevocationRejected` - When invoice could not be revocated
+- `InvoiceReverted` - When invoice is reverted to valid
+- `InvoicePdfRetrived` - When a pdf invoice is ready
 
 ## Features
 
@@ -362,30 +386,30 @@ The SDK fires the following events:
 - Store locally for offline use
 - Global parametrics synced automatically on account creation
 - Account-specific parametrics synced automatically on account creation
+- Automatic validation checks before operations
 
 ### Invoice Management
-- Issue electronic invoices
+- Issue electronic invoices using homologated products
 - Validate NIT
 - Revocate invoices
+- Automatic token and parametric validation
 
 ### Product Homologation
 - Homologate products with fiscal codes
+- Automatic mapping of product codes to SIN codes and activities in invoices
 
 ## Contributing
 
 Contributions are welcome. Please follow the changelog conventions.
 
-## API Documentation
-
-OpenAPI/Swagger documentation is available in `docs/swagger.yaml`.
-
 ## Admin UI (Package Included)
 
-The package includes a basic web interface for testing and reviewing the SDK functionality:
+The package includes a comprehensive web interface for managing EMIZOR accounts and operations:
 
-- **Invoices**: `/emizor-admin/invoices` - List and view invoice details with filters
-- **Configuration**: `/emizor-admin/config` - View account settings and synced parametrics
-- **Config Check**: `/emizor-admin/config/check` - Verify configuration completeness
+- **Accounts**: `/emizor-admin/accounts` - List all accounts, register new accounts, and manage existing ones
+- **Configuration**: `/emizor-admin/config` - View account settings, synced parametrics, and set default configurations
+- **Config Check**: `/emizor-admin/config/check` - Verify account completeness (token, parametrics, defaults)
+- **Invoices**: `/emizor-admin/invoices` - List and view invoice details with filters, revoke invoices, and download PDFs
 
 Routes are automatically loaded when the package is registered. Views use Bootstrap for styling. Access via `?account_id=uuid` parameter for testing different accounts.
 

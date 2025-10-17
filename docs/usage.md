@@ -79,6 +79,14 @@ $accountId = EmizorSdk::register(function ($builder) use ($company) {
 
 // Use the dynamic manager for operations
 $api = EmizorSdk::for($company);
+
+// Most operations now require valid token and synced parametrics
+try {
+    $api->syncParametrics(['actividades']);
+} catch (\Exception $e) {
+    // Handle token or parametric validation errors
+    Log::error('Operation failed: ' . $e->getMessage());
+}
 ```
 
 ### Using Dependency Injection
@@ -106,11 +114,13 @@ class InvoiceController extends Controller
 
 1. **Register Account**: If you don't have an account ID yet, register first.
 2. **Sync Parametrics**: Sync fiscal parametrics (activities, products, etc.) for offline use.
-3. **Set Defaults**: Configure default values for your account.
-4. **Homologate Products**: Register your products with fiscal codes.
-5. **Issue Invoices**: Create and emit electronic invoices.
+3. **Set Defaults**: Configure default values for your account using the new `useCompraVentaDocumentType()` method.
+4. **Homologate Products**: Register your products with fiscal codes (required for invoice issuance).
+5. **Issue Invoices**: Create and emit electronic invoices using homologated product codes.
 6. **Validate NIT**: Check taxpayer identification numbers.
 7. **Revocate Invoices**: Cancel invoices if needed.
+
+**Important**: Steps 2-7 require a valid token and synced parametrics. The SDK automatically validates this before operations.
 
 ## Error Handling
 
@@ -127,16 +137,26 @@ The SDK throws specific exceptions that all extend `EmizorSdkException`:
 - `ParametricSyncValidationException` (code 1006): Invalid parametric data
 - `RegisterValidationException` (code 1007): Invalid registration data
 
-You can catch the base `EmizorSdkException` to handle all SDK errors generically.
+**New validation errors:**
+- Operations may throw generic `Exception` with messages like "No token found, please refresh token before continue." or "No parametrics found, please complete parametrics sync." when token or parametric checks fail.
+
+You can catch the base `EmizorSdkException` to handle all SDK errors generically, or catch `Exception` for validation errors.
 
 Always wrap API calls in try-catch blocks:
 
 ```php
 try {
     $api->syncParametrics(['actividades']);
+    $api->setDefaults(function ($builder) {
+        $builder->useCompraVentaDocumentType()
+                ->setActivityCode('461091');
+    });
+} catch (\Emizor\SDK\Exceptions\EmizorSdkException $e) {
+    // Handle SDK-specific errors
+    Log::error('SDK error: ' . $e->getMessage());
 } catch (\Exception $e) {
-    // Handle error
-    Log::error('Parametric sync failed: ' . $e->getMessage());
+    // Handle validation errors (token, parametrics)
+    Log::error('Validation error: ' . $e->getMessage());
 }
 ```
 

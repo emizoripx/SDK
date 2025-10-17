@@ -100,8 +100,8 @@ print_r($types);
 ### Set Account Defaults
 
 ```php
-$api->setDefaults(function ($data) {
-    $data->setTypeDocument('compra-venta')
+$api->setDefaults(function ($builder) {
+    $builder->useCompraVentaDocumentType()
             ->setBranch('001')
             ->setPos('001')
             ->setPaymentMethod('efectivo')
@@ -169,23 +169,35 @@ $client = new ClientDTO(
     'cliente@example.com'
 );
 
+// First, ensure products are homologated
+$products = [
+    [
+        'codigoProducto' => 'PROD001',
+        'descripcionProducto' => 'Producto de ejemplo',
+        'codigoActividad' => '620100',
+        'codigoProductoSin' => '83111'
+    ]
+];
+$api->homologateProduct($products);
+
+// Now issue invoice using the homologated product code
 $details = [
     [
-        'product_code' => 'PROD001',
+        'product_code' => 'PROD001', // Must match homologated product
         'description' => 'Producto de ejemplo',
         'quantity' => 1,
         'unit_price' => 100.00,
-        'unit_code' => '1',
+        'unit_code' => '1', // Will be overridden by homologated unit code if available
     ]
 ];
 
 $api->issueInvoice(function ($builder) use ($client, $details) {
     $builder->setClient($client)
             ->setDetails($details)
-            ->setTypeDocument('1')
+            ->useCompraVentaDocumentType()
             ->setBranch(1)
             ->setPos(1)
-            ->setPaymentMethod('1')
+            ->setPaymentMethod('efectivo')
             ->setAmount(100.00);
 }, $ticket);
 
@@ -295,8 +307,8 @@ class InvoiceController extends Controller
 
             $accountApi->issueInvoice(function ($builder) use ($client, $request) {
                 $builder->setClient($client)
-                        ->setDetails($request->items)
-                        ->setTypeDocument($request->type_document ?? '1')
+                        ->setDetails($request->items) // product_code must match homologated products
+                        ->useCompraVentaDocumentType()
                         ->setBranch($request->branch ?? 1)
                         ->setPos($request->pos ?? 1)
                         ->setPaymentMethod($request->payment_method)
@@ -310,6 +322,40 @@ class InvoiceController extends Controller
     }
 }
 ```
+
+## Admin UI Examples
+
+The package includes a web interface for administrative tasks. Access these routes in your browser:
+
+### Register Account via Web Interface
+
+Navigate to `/emizor-admin/accounts` and use the registration form:
+- Enter Client ID and Client Secret
+- Select environment (piloto/production)
+- Optionally associate with an owner model
+- Submit to register and automatically sync parametrics
+
+### Configure Account Defaults
+
+From the accounts list, click "Configurar" for an account, then set:
+- Document type (automatically set to compra-venta)
+- Branch, POS, payment method
+- SIN product code and activity code (must be synced)
+
+### Manage Invoices
+
+Navigate to `/emizor-admin/invoices` to:
+- View invoices with filters (status, date range, account)
+- Revoke invoices with reason codes (1 or 3)
+- Download PDF receipts
+
+### Check Account Completeness
+
+Use `/emizor-admin/config/check?account_id=uuid` to verify:
+- Account exists
+- Token is present
+- Parametrics are synced
+- Defaults are configured
 
 ## Event Listeners
 
@@ -364,6 +410,27 @@ it('throws exception on invalid registration', function () {
                 ->setClientSecret('')
                 ->usePilotoEnvironment();
     }))->toThrow(EmizorApiRegisterException::class);
+});
+
+it('validates token and parametrics before operations', function () {
+    $api = app(EmizorApiContract::class);
+
+    // This should fail if no account is set up
+    expect(fn() => $api->syncParametrics(['actividades']))
+        ->toThrow(Exception::class, 'No token found');
+});
+
+it('sets defaults with new builder method', function () {
+    $api = app(EmizorApiContract::class);
+
+    // Assuming account is properly set up
+    $api->setDefaults(function ($builder) {
+        $builder->useCompraVentaDocumentType()
+                ->setActivityCode('461091');
+    });
+
+    $defaults = $api->getDefaults();
+    expect($defaults['type_document'])->toBe('compra-venta');
 });
 ```</content>
 </xai:function_call"> 
