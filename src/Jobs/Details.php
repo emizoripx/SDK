@@ -17,10 +17,10 @@ class Details implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 4;
+    public $backoff = [0.1,0.1,0.1,0.1,0.1,0.1,0.5,0.5,1,1,1,5,10,10,10,10,10,30];
 
     protected $ticket;
 
-    protected $invoice;
     /**
      * Create a new job instance.
      *
@@ -29,18 +29,16 @@ class Details implements ShouldQueue
     public function __construct($ticket)
     {
         $this->ticket = $ticket;
-        $this->invoice = BeiInvoice::findByTicket($this->ticket);
-    }
-
-    public function backoff()
-    {
-        return [2, 5, 10, 30];
     }
 
 
     public function middleware()
     {
         return [(new WithoutOverlapping($this->ticket))->releaseAfter(10)];
+    }
+    public function retryUntil()
+    {
+        return now()->addHours(72);
     }
 
     /**
@@ -56,10 +54,21 @@ class Details implements ShouldQueue
 
         } catch (Throwable $ex) {
             info("Error  TICKET: " . $this->ticket." Message: ". $ex->getMessage() . " File : " . $ex->getFile() . " Line: " .$ex->getLine());
-//            $attempts_after = $this->delay_times[$this->attempts() - 1];
+//            $attempts_after = $this->delay_times[$this->atgit tempts() - 1];
 
-            $this->release($this->backoff()[$this->attempts() - 1]);
+            $this->releaseBackoff();
         }
+    }
+    public function releaseBackoff()
+    {
+        if ($this->attempts() > sizeof($this->backoff)) {
+            $retry_time= $this->backoff[sizeof($this->backoff)-1] * 60 ;
+        }else {
+            $retry_time= $this->backoff[$this->attempts()-1] * 60 ;
+        }
+
+        info("CHECK-TRANSACTION  #" . $this->transaction_id . " >>> " . " RELEASE FOR " . $retry_time . " seconds");
+        $this->release($retry_time);
     }
 
 

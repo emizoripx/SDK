@@ -89,15 +89,15 @@ class InvoiceDetailService
 
             if ($invoice->isInProgress()) {
                 $invoice->markCompleteEmission();
-                $invoice->updateBEIfields($response);
-                event(new InvoiceAccepted(ticket: $ticket, status: 690, meta:[]));
             }
 
             if ($response['estado'] == "INVOICE_STATE_SENT_TO_SIN_INVALID" ) {
-                BeiOfflineInvoiceTracking::remove($ticket);
                 $invoice->updateBEIfields($response);
                 event(new InvoiceRejected(ticket: $ticket,status: 902,meta:["description" => "" , "errors" => $this->getErrorRejection($response)]));
+            } else {
+                event(new InvoiceAccepted(ticket: $ticket, status: 690, meta:[]));
             }
+            BeiOfflineInvoiceTracking::remove($ticket);
 
         }else {
 
